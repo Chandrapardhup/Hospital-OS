@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-primary: 'Inter', sans-serif;
+    --font-inter: 'Inter', sans-serif;
+    --font-roboto: 'Roboto', sans-serif;
+    --font-outfit: 'Outfit', sans-serif;
+    
+    /* Light Mode Variables */
+    --background: 0 0% 98%;
+    --foreground: 228 35% 6%;
+    --card: 0 0% 100%;
+    --card-foreground: 228 35% 6%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 228 35% 6%;
+    --primary: 265 89% 68%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 228 35% 6%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 228 35% 6%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 265 89% 68%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Match the UI from the screenshot: Deep dark bluish-grey background */
+    --background: 228 35% 6%; /* HSL for approx #0B0D17 */
+    --foreground: 210 40% 98%;
+    --card: 228 30% 9%; 
+    --card-foreground: 210 40% 98%;
+    --popover: 228 30% 9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 265 89% 68%; /* Bright purple like #a855f7 */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 228 20% 15%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 228 20% 15%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 228 20% 15%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 228 20% 15%;
+    --input: 228 20% 15%;
+    --ring: 265 89% 68%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-primary);
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Glassmorphism utilities */
+.glass-card {
+  @apply bg-card/60 backdrop-blur-xl border border-white/5 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)];
+}
+
+.glass-panel {
+  @apply bg-background/80 backdrop-blur-md border-r border-white/5;
+}

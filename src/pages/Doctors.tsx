@@ -1,0 +1,97 @@
+import { useHospitalStore } from '../store/useHospitalStore';
+
+export default function Doctors() {
+  const doctors = useHospitalStore(state => state.doctors);
+  const isLoading = false;
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-6 pb-20">
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+          <span>Administrator</span>
+          <span className="text-foreground/20">•</span>
+          <span className="text-primary">Command Center</span>
+        </div>
+        <div className="flex items-center justify-between mt-1">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">Doctors</h1>
+            <p className="text-sm text-muted-foreground mt-1">Staff availability · {doctors.length} on shift</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Stat Cards */}
+      <div className="grid grid-cols-4 gap-4 mt-8">
+        <div className="bg-card/40 border border-border/50 rounded-xl p-5 backdrop-blur-sm">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">On Shift</p>
+          <div className="text-3xl font-bold text-foreground mb-2">{doctors.length}</div>
+        </div>
+        <div className="bg-card/40 border border-border/50 rounded-xl p-5 backdrop-blur-sm">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Consulting / Surgery</p>
+          <div className="text-3xl font-bold text-foreground mb-2">{doctors.filter(d => d.status === 'In Surgery').length}</div>
+        </div>
+        <div className="bg-card/40 border border-border/50 rounded-xl p-5 backdrop-blur-sm">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Available</p>
+          <div className="text-3xl font-bold text-foreground mb-2">{doctors.filter(d => d.status === 'Available').length}</div>
+          <p className="text-xs font-medium text-emerald-500">Ready to assign</p>
+        </div>
+        <div className="bg-card/40 border border-border/50 rounded-xl p-5 backdrop-blur-sm">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">On Leave</p>
+          <div className="text-3xl font-bold text-foreground mb-2">{doctors.filter(d => d.status === 'On Leave').length}</div>
+        </div>
+      </div>
+
+      {/* Doctors Grid */}
+      <div className="grid grid-cols-3 gap-6 mt-6">
+        {isLoading ? (
+          <div className="col-span-3 text-center text-muted-foreground py-10">Loading doctors...</div>
+        ) : doctors.length === 0 ? (
+          <div className="col-span-3 text-center py-20 bg-card/20 rounded-2xl border border-border border-dashed flex flex-col items-center justify-center">
+            <h3 className="text-xl font-bold text-foreground mb-2">No Doctors Registered</h3>
+            <p className="text-muted-foreground text-sm max-w-md">There are currently no doctors in the system. Sign out and create a doctor account to populate this directory.</p>
+          </div>
+        ) : doctors.map((doctor) => (
+          <div key={doctor.id} className="bg-card/40 border border-border rounded-2xl p-6 backdrop-blur-sm hover:border-white/20 transition-colors cursor-pointer group">
+            <div className="flex items-start justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <img src={doctor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(doctor.name)}&background=random`} alt={doctor.name} className="w-12 h-12 rounded-full border-2 border-background shadow-lg shadow-black/50" />
+                <div>
+                  <h3 className="font-bold text-foreground text-lg">{doctor.name}</h3>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">{doctor.specialization || doctor.department}</p>
+                </div>
+              </div>
+              <StatusBadge status={doctor.status} />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Fee</p>
+                <p className="text-lg font-semibold text-foreground">${doctor.consultationFee}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Exp</p>
+                <p className="text-sm font-medium text-foreground pt-1">{doctor.experienceYears} Years</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const isAvailable = status === "Available";
+  const isConsulting = status === "In Surgery";
+  
+  let color = "text-amber-500 bg-amber-500"; // On Leave or other
+  if (isAvailable) color = "text-emerald-500 bg-emerald-500";
+  if (isConsulting) color = "text-primary bg-primary";
+
+  return (
+    <div className={`flex items-center gap-1.5 ${color.split(" ")[0]} text-[10px] font-bold uppercase tracking-wider`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${color.split(" ")[1]}`} />
+      {status}
+    </div>
+  );
+}
