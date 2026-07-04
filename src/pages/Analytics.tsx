@@ -76,7 +76,7 @@ export default function Analytics() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-4 gap-4 mt-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-6 md:mt-8">
         <div className="bg-card/40 border border-border/50 rounded-xl p-5 backdrop-blur-sm">
           <div className="flex items-center justify-between mb-2">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Patient Volume</p>
@@ -123,7 +123,7 @@ export default function Analytics() {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-2 gap-6 mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-6">
         <div className="bg-card/30 border border-border rounded-2xl p-6 backdrop-blur-sm">
           <h3 className="text-sm font-bold text-foreground mb-6 uppercase tracking-widest">Weekly Revenue</h3>
           <div className="h-72">

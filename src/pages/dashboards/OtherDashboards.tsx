@@ -40,7 +40,7 @@ export function ReceptionDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6 mt-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mt-6 md:mt-8">
         <div className="bg-card/40 border border-border/50 rounded-2xl p-6">
           <div className="flex justify-between items-start mb-4">
             <h3 className="text-lg font-bold text-foreground">Waitlist</h3>
@@ -87,7 +87,7 @@ export function NurseDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6 mt-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mt-6 md:mt-8">
         <div className="bg-card/40 border border-border/50 rounded-2xl p-6">
           <div className="flex justify-between items-start mb-4">
             <h3 className="text-lg font-bold text-foreground">Critical Patients</h3>
@@ -149,7 +149,7 @@ export function PharmacyDashboard() {
         <p className="text-muted-foreground mt-1">Dispense medications and manage inventory.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-6 mt-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-6 md:mt-8">
         <div className="bg-card/30 border border-border rounded-2xl p-8 text-center h-[300px] flex flex-col items-center justify-center">
           <Pill className="w-12 h-12 text-primary mx-auto mb-4 opacity-80" />
           <h2 className="text-xl font-bold text-foreground mb-2">No Active Prescriptions</h2>

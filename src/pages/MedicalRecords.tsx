@@ -19,14 +19,14 @@ export default function MedicalRecords() {
           <span className="text-foreground/20">•</span>
           <span className="text-primary">Command Center</span>
         </div>
-        <div className="flex items-center justify-between mt-1">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-1 gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">Medical Records</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">Medical Records</h1>
             <p className="text-sm text-muted-foreground mt-1">Longitudinal health graph · 128,410 documents indexed</p>
           </div>
           <button 
             onClick={() => setIsUploadModalOpen(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-card border border-border hover:bg-muted text-foreground font-medium rounded-xl transition-all"
+            className="flex items-center gap-2 px-5 py-2.5 bg-card border border-border hover:bg-muted text-foreground font-medium rounded-xl transition-all w-full sm:w-auto justify-center min-h-[48px]"
           >
             <Upload className="w-4 h-4" /> Upload document
           </button>
@@ -50,7 +50,7 @@ export default function MedicalRecords() {
           </div>
         ) : (
           records.map((record) => (
-            <div key={record.id} className="bg-card/30 border border-border/50 hover:border-border hover:bg-muted rounded-xl p-5 flex items-center justify-between backdrop-blur-sm transition-colors group">
+            <div key={record.id} className="bg-card/30 border border-border/50 hover:border-border hover:bg-muted rounded-xl p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between backdrop-blur-sm transition-colors group gap-3">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
                   <FileText className="w-5 h-5" />
@@ -60,7 +60,7 @@ export default function MedicalRecords() {
                   <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">{record.sub}</p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {record.fileUrl && (
                   <a 
                     href={record.fileUrl} 

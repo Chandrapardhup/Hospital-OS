@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { Role } from '../../types/auth';
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
+import { supabase } from '../../lib/supabase';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -26,6 +27,9 @@ const registerSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
   role: z.enum(['user', 'doctor', 'receptionist', 'admin'] as const),
   department: z.string().optional(),
+  specialization: z.string().optional(),
+  experienceYears: z.number().optional(),
+  consultationFee: z.number().optional(),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -113,13 +117,13 @@ export default function LoginPage() {
         const newDoctorId = `doc_${Date.now()}`;
         addDoctor({
           id: newDoctorId,
-          name: data.name,
+          name: `Dr. ${data.name}`,
           email: data.email,
           phone: '',
           department: data.department || 'General',
-          specialization: 'General Practice',
-          experienceYears: 0,
-          consultationFee: 100,
+          specialization: data.specialization || 'General Medicine',
+          experienceYears: data.experienceYears || 0,
+          consultationFee: data.consultationFee || 100,
           availableDays: ['Monday', 'Wednesday', 'Friday'],
           status: 'Available',
           avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random`
@@ -152,14 +156,14 @@ export default function LoginPage() {
       const decoded: any = jwtDecode(credentialResponse.credential);
       const { email, name, sub: googleId } = decoded;
 
-      // Check if user exists in our local simulated store
-      const usersData = localStorage.getItem('hospitalos-auth-v2');
-      const existingUsers = usersData ? JSON.parse(usersData).state.users : [];
-      const existingUser = existingUsers.find((u: any) => u.email === email);
+      // Check if user exists directly in Supabase to be 100% sure
+      const { data: existingUser } = await supabase.from('users').select('*').eq('email', email).single();
 
       if (existingUser) {
         // User exists, log them in
-        const { user, token } = await authService.login(email, existingUser.password);
+        // (If using simulated auth service, we still pass password if stored, or fallback)
+        const passwordToUse = existingUser.password || `google_${googleId}`;
+        const { user, token } = await authService.login(email, passwordToUse);
         setAuth(user, token);
         redirectUser(user.role);
       } else {
@@ -177,12 +181,18 @@ export default function LoginPage() {
   const handleCompleteGoogleRegistration = async () => {
     if (!googleUser || !selectedRole) return;
     const mockPassword = `google_${googleUser.googleId}`;
+    
+    const formValues = watch();
+    
     await onRegister({
       name: googleUser.name,
       email: googleUser.email,
       password: mockPassword,
       role: selectedRole as Role,
-      department: ''
+      department: formValues.department,
+      specialization: formValues.specialization,
+      experienceYears: Number(formValues.experienceYears) || 0,
+      consultationFee: Number(formValues.consultationFee) || 0
     });
     setShowRoleModal(false);
   };
@@ -537,6 +547,56 @@ export default function LoginPage() {
                       ))}
                     </div>
                   </div>
+
+                  {selectedRole === 'doctor' && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-3 pt-2">
+                      <div className="space-y-1">
+                        <label className="text-xs text-muted-foreground ml-1 uppercase tracking-wider">Department</label>
+                        <Select onValueChange={(val) => setValue('department', val)}>
+                          <SelectTrigger className="bg-background/50 h-10 border-border focus:ring-primary/20">
+                            <SelectValue placeholder="Select department" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-card border-border">
+                            <SelectItem value="Cardiology">Cardiology</SelectItem>
+                            <SelectItem value="Neurology">Neurology</SelectItem>
+                            <SelectItem value="Pediatrics">Pediatrics</SelectItem>
+                            <SelectItem value="Orthopedics">Orthopedics</SelectItem>
+                            <SelectItem value="General">General Medicine</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <label className="text-xs text-muted-foreground ml-1 uppercase tracking-wider">Specialization</label>
+                        <Input 
+                          {...regReg('specialization')}
+                          placeholder="e.g. Heart Surgeon"
+                          className="bg-background/50 h-10 border-border focus:ring-primary/20"
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-xs text-muted-foreground ml-1 uppercase tracking-wider">Experience (Yrs)</label>
+                          <Input 
+                            type="number"
+                            {...regReg('experienceYears', { valueAsNumber: true })}
+                            placeholder="e.g. 10"
+                            className="bg-background/50 h-10 border-border focus:ring-primary/20"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-muted-foreground ml-1 uppercase tracking-wider">Fee ($)</label>
+                          <Input 
+                            type="number"
+                            {...regReg('consultationFee', { valueAsNumber: true })}
+                            placeholder="e.g. 150"
+                            className="bg-background/50 h-10 border-border focus:ring-primary/20"
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
                   
                   <Button 
                     onClick={handleCompleteGoogleRegistration} 

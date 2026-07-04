@@ -19,12 +19,19 @@ import DoctorDashboard from "./pages/dashboards/DoctorDashboard";
 import PatientDashboard from "./pages/dashboards/PatientDashboard";
 import { ReceptionDashboard, NurseDashboard, LabDashboard, PharmacyDashboard } from "./pages/dashboards/OtherDashboards";
 import Settings from "./pages/Settings";
+import { Toaster } from "sonner";
 import EmergencyTriage from "./pages/EmergencyTriage";
 import Billing from "./pages/Billing";
 import Analytics from "./pages/Analytics";
 import NotificationsHub from "./pages/NotificationsHub";
 
 import { useSettingsStore } from "./store/useSettingsStore";
+
+// Enterprise AI Dashboards
+import HospitalBrainDashboard from './pages/dashboards/admin/HospitalBrainDashboard';
+import WorkflowDashboard from './pages/dashboards/admin/WorkflowDashboard';
+import BriefingDashboard from './pages/dashboards/admin/BriefingDashboard';
+import EmailQueueDashboard from './pages/dashboards/admin/EmailQueueDashboard';
 
 const queryClient = new QueryClient();
 
@@ -48,22 +55,17 @@ function AppRoutes() {
     }
   }, [theme, fontSize]);
 
-  // Sync state across multiple tabs live
+  // Load data from Supabase on mount
   useEffect(() => {
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'hospitalos-data-v2') {
-        import('./store/useHospitalStore').then(({ useHospitalStore }) => {
-          useHospitalStore.persist.rehydrate();
-        });
-      }
-      if (e.key === 'auth-storage-v2') {
-        import('./store/useAuthStore').then(({ useAuthStore }) => {
-          useAuthStore.persist.rehydrate();
-        });
-      }
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+    import('./store/useHospitalStore').then(({ useHospitalStore }) => {
+      useHospitalStore.getState().initializeData();
+    });
+    import('./store/useAuthStore').then(({ useAuthStore }) => {
+      useAuthStore.getState().initializeUsers();
+    });
+    import('./store/useEnterpriseStore').then(({ useEnterpriseStore }) => {
+      useEnterpriseStore.getState().initializeEnterpriseData();
+    });
   }, []);
 
   return (
@@ -84,6 +86,12 @@ function AppRoutes() {
 
         {/* Admin Routes */}
         <Route path="admin" element={<RequireAuth allowedRoles={['admin']}><Dashboard /></RequireAuth>} />
+        
+        {/* Enterprise AI Features */}
+        <Route path="admin/brain" element={<RequireAuth allowedRoles={['admin']}><HospitalBrainDashboard /></RequireAuth>} />
+        <Route path="admin/workflows" element={<RequireAuth allowedRoles={['admin']}><WorkflowDashboard /></RequireAuth>} />
+        <Route path="admin/briefing" element={<RequireAuth allowedRoles={['admin']}><BriefingDashboard /></RequireAuth>} />
+        <Route path="admin/emails" element={<RequireAuth allowedRoles={['admin']}><EmailQueueDashboard /></RequireAuth>} />
         <Route path="patients" element={<RequireAuth allowedRoles={['admin', 'doctor', 'receptionist', 'nurse']}><Patients /></RequireAuth>} />
         <Route path="doctors" element={<RequireAuth allowedRoles={['admin', 'receptionist']}><Doctors /></RequireAuth>} />
         <Route path="appointments" element={<RequireAuth allowedRoles={['admin', 'doctor', 'receptionist', 'user']}><Appointments /></RequireAuth>} />
@@ -117,6 +125,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <Toaster position="bottom-right" richColors />
         <AppRoutes />
       </BrowserRouter>
     </QueryClientProvider>

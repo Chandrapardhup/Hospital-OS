@@ -37,13 +37,13 @@ export default function Dashboard() {
         </div>
         <div className="flex items-center justify-between mt-1">
           <div>
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">{t('hospital_overview')}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">{t('hospital_overview')}</h1>
             <p className="text-sm text-muted-foreground mt-1">{t('welcome_back')}, {user?.name.split(' ')[0]}.</p>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 pt-2">
+      <div className="flex flex-wrap items-center gap-2 md:gap-3 pt-2">
         <button 
           onClick={() => setIsAddPatientOpen(true)}
           className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
@@ -106,7 +106,7 @@ export default function Dashboard() {
         </div>
 
         {/* Scores Grid */}
-        <div className="grid grid-cols-4 gap-4 relative z-10 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 relative z-10 mb-8">
           <ScoreCard title="HOSPITAL HEALTH" score={98} color="text-emerald-400" stroke="stroke-emerald-400" />
           <ScoreCard title="OPERATIONAL" score={92} color="text-primary" stroke="stroke-primary" />
           <ScoreCard title="PERFORMANCE" score={87} color="text-blue-400" stroke="stroke-blue-400" />
@@ -114,7 +114,7 @@ export default function Dashboard() {
         </div>
 
         {/* Alerts Grid */}
-        <div className="grid grid-cols-3 gap-4 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 relative z-10">
           <AlertCard 
             type="CRITICAL" 
             title="ICU occupancy has reached 92%" 

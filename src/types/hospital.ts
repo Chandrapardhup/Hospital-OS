@@ -75,6 +75,72 @@ export interface Invoice {
   items: { description: string; cost: number }[];
 }
 
+// ==========================================
+// ENTERPRISE AI FEATURES
+// ==========================================
+
+export type RecommendationStatus = 'Pending' | 'Approved' | 'Rejected' | 'Ignored' | 'Completed';
+export type RecommendationPriority = 'High' | 'Medium' | 'Low' | 'Critical';
+
+export interface Recommendation {
+  id: string;
+  title: string;
+  priority: RecommendationPriority;
+  confidenceScore: number;
+  reason: string;
+  department: string;
+  suggestedAction: string;
+  status: RecommendationStatus;
+  createdAt: string;
+}
+
+export type WorkflowStatus = 'Pending' | 'Running' | 'Completed' | 'Failed';
+
+export interface WorkflowStep {
+  id: string;
+  name: string;
+  status: WorkflowStatus;
+  agent: string;
+  executionTimeMs?: number;
+  error?: string;
+}
+
+export interface Workflow {
+  id: string;
+  name: string;
+  triggerEvent: string;
+  status: WorkflowStatus;
+  steps: WorkflowStep[];
+  executionTimeMs?: number;
+  createdAt: string;
+}
+
+export type EmailStatus = 'Queued' | 'Sending' | 'Delivered' | 'Failed' | 'Retry';
+
+export interface Email {
+  id: string;
+  recipient: string;
+  subject: string;
+  template: string;
+  content: string;
+  status: EmailStatus;
+  createdAt: string;
+}
+
+export interface DailyBriefing {
+  id: string;
+  date: string;
+  hospitalHealthScore: number;
+  admissions: number;
+  discharges: number;
+  appointments: number;
+  criticalPatients: number;
+  revenue: number;
+  pendingLabReports: number;
+  recommendations: string[];
+  createdAt: string;
+}
+
 // Store state interface
 export interface HospitalState {
   patients: Patient[];
@@ -86,25 +152,25 @@ export interface HospitalState {
   
   // Actions
   setPatients: (patients: Patient[]) => void;
-  addPatient: (patient: Patient) => void;
-  updatePatient: (id: string, data: Partial<Patient>) => void;
-  deletePatient: (id: string) => void;
+  addPatient: (patient: Patient) => Promise<void>;
+  updatePatient: (id: string, data: Partial<Patient>) => Promise<void>;
+  deletePatient: (id: string) => Promise<void>;
   
   setDoctors: (doctors: Doctor[]) => void;
-  addDoctor: (doctor: Doctor) => void;
-  updateDoctor: (id: string, data: Partial<Doctor>) => void;
-  deleteDoctor: (id: string) => void;
+  addDoctor: (doctor: Doctor) => Promise<void>;
+  updateDoctor: (id: string, data: Partial<Doctor>) => Promise<void>;
+  deleteDoctor: (id: string) => Promise<void>;
   
   setAppointments: (appointments: Appointment[]) => void;
-  addAppointment: (appointment: Appointment) => void;
-  updateAppointment: (id: string, data: Partial<Appointment>) => void;
-  deleteAppointment: (id: string) => void;
+  addAppointment: (appointment: Appointment) => Promise<void>;
+  updateAppointment: (id: string, data: Partial<Appointment>) => Promise<void>;
+  deleteAppointment: (id: string) => Promise<void>;
   
-  addNotification: (notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => void;
-  markNotificationRead: (id: string) => void;
+  addNotification: (notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => Promise<void>;
+  markNotificationRead: (id: string) => Promise<void>;
   
-  addInvoice: (invoice: Invoice) => void;
-  updateInvoice: (id: string, data: Partial<Invoice>) => void;
+  addInvoice: (invoice: Invoice) => Promise<void>;
+  updateInvoice: (id: string, data: Partial<Invoice>) => Promise<void>;
 
-  addMedicalRecord: (record: Omit<MedicalRecord, 'id' | 'createdAt'>) => void;
+  addMedicalRecord: (record: Omit<MedicalRecord, 'id' | 'createdAt'>) => Promise<void>;
 }

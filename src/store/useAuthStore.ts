@@ -2,15 +2,17 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User } from '../types/auth';
 import { mockUsers } from '../mockDB/users';
+import { supabase } from '../lib/supabase';
 
 interface AuthState {
   user: Omit<User, 'password'> | null;
   token: string | null;
   isAuthenticated: boolean;
-  users: User[]; // Acts as our local database for authentication
+  users: User[]; // Acts as our local cache
+  initializeUsers: () => Promise<void>;
   setAuth: (user: Omit<User, 'password'>, token: string) => void;
   logout: () => void;
-  registerUser: (newUser: User) => void;
+  registerUser: (newUser: User) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -19,10 +21,21 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       token: null,
       isAuthenticated: false,
-      users: mockUsers, // Seed with mock users initially
+      users: [], 
+      initializeUsers: async () => {
+        try {
+          const { data } = await supabase.from('users').select('*');
+          if (data) set({ users: data });
+        } catch (error) {
+          console.error("Failed to load users", error);
+        }
+      },
       setAuth: (user, token) => set({ user, token, isAuthenticated: true }),
       logout: () => set({ user: null, token: null, isAuthenticated: false }),
-      registerUser: (newUser) => set((state) => ({ users: [...state.users, newUser] })),
+      registerUser: async (newUser) => {
+        set((state) => ({ users: [...state.users, newUser] }));
+        await supabase.from('users').insert(newUser);
+      },
     }),
     {
       name: 'auth-storage-v2',

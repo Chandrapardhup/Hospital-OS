@@ -14,14 +14,14 @@ export default function Doctors() {
         </div>
         <div className="flex items-center justify-between mt-1">
           <div>
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">Doctors</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">Doctors</h1>
             <p className="text-sm text-muted-foreground mt-1">Staff availability · {doctors.length} on shift</p>
           </div>
         </div>
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-4 gap-4 mt-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-6 md:mt-8">
         <div className="bg-card/40 border border-border/50 rounded-xl p-5 backdrop-blur-sm">
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">On Shift</p>
           <div className="text-3xl font-bold text-foreground mb-2">{doctors.length}</div>
@@ -42,11 +42,11 @@ export default function Doctors() {
       </div>
 
       {/* Doctors Grid */}
-      <div className="grid grid-cols-3 gap-6 mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mt-6">
         {isLoading ? (
-          <div className="col-span-3 text-center text-muted-foreground py-10">Loading doctors...</div>
+          <div className="col-span-full text-center text-muted-foreground py-10">Loading doctors...</div>
         ) : doctors.length === 0 ? (
-          <div className="col-span-3 text-center py-20 bg-card/20 rounded-2xl border border-border border-dashed flex flex-col items-center justify-center">
+          <div className="col-span-full text-center py-20 bg-card/20 rounded-2xl border border-border border-dashed flex flex-col items-center justify-center">
             <h3 className="text-xl font-bold text-foreground mb-2">No Doctors Registered</h3>
             <p className="text-muted-foreground text-sm max-w-md">There are currently no doctors in the system. Sign out and create a doctor account to populate this directory.</p>
           </div>

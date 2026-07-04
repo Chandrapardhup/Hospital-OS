@@ -59,7 +59,7 @@ export default function DoctorDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-6 md:mt-8">
         <div className="bg-card/40 border border-border/50 rounded-xl p-5 backdrop-blur-sm">
           <div className="flex justify-between items-start mb-2">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Today's Patients</p>
@@ -322,7 +322,7 @@ function PatientTimelineModal({ patientId, open, onOpenChange }: { patientId: st
             </Dialog.Close>
           </div>
 
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
             <div className="col-span-2 space-y-6">
               <div className="relative border-l-2 border-primary/20 ml-4 space-y-8">
                 {/* Timeline UI */}

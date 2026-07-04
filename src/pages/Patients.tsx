@@ -27,14 +27,14 @@ export default function Patients() {
           <span className="text-foreground/20">•</span>
           <span className="text-primary">Command Center</span>
         </div>
-        <div className="flex items-center justify-between mt-1">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-1 gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">Patients</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">Patients</h1>
             <p className="text-sm text-muted-foreground mt-1">Live census · {patients.length} total patients registered</p>
           </div>
           <button 
             onClick={() => setIsAddDrawerOpen(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 text-foreground font-medium rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all"
+            className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 text-foreground font-medium rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all w-full sm:w-auto justify-center min-h-[48px]"
           >
             <UserPlus className="w-5 h-5" /> Register patient
           </button>
@@ -42,7 +42,7 @@ export default function Patients() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-4 gap-4 mt-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-6 md:mt-8">
         <div className="bg-card/40 border border-border/50 rounded-xl p-5 backdrop-blur-sm">
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Admitted</p>
           <div className="text-3xl font-bold text-foreground mb-2">{admittedCount}</div>
@@ -68,7 +68,7 @@ export default function Patients() {
       {/* Table Section */}
       <div className="bg-card/30 border border-border rounded-2xl backdrop-blur-md overflow-hidden mt-6">
         <div className="p-4 border-b border-border/50 flex items-center justify-between">
-          <div className="relative w-96">
+          <div className="relative w-full md:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input 
               type="text" 
@@ -83,7 +83,8 @@ export default function Patients() {
           </div>
         </div>
         
-        <div className="overflow-x-auto">
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="text-[10px] uppercase tracking-widest text-muted-foreground bg-background/50">
               <tr>
@@ -95,7 +96,7 @@ export default function Patients() {
                 <th className="px-6 py-4 font-bold">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-border">
               {filteredPatients.map((patient) => (
                 <tr key={patient.id} className="hover:bg-muted transition-colors cursor-pointer group">
                   <td className="px-6 py-4 text-muted-foreground font-mono text-xs">{patient.id}</td>
@@ -117,6 +118,40 @@ export default function Patients() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="md:hidden flex flex-col divide-y divide-border">
+          {filteredPatients.map((patient) => (
+            <div key={patient.id} className="p-4 flex flex-col gap-3 hover:bg-muted/50 active:bg-muted transition-colors">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-medium text-foreground">{patient.name}</h3>
+                  <p className="text-xs font-mono text-muted-foreground mt-0.5">{patient.id}</p>
+                </div>
+                <StatusBadge status={patient.status} />
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <span className="text-xs text-muted-foreground block">Phone</span>
+                  <span className="text-foreground">{patient.phone}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground block">Blood Group</span>
+                  <span className="text-foreground">{patient.bloodGroup}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground block">Gender</span>
+                  <span className="text-foreground">{patient.gender}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+          {filteredPatients.length === 0 && (
+            <div className="p-8 text-center text-muted-foreground">
+              No patients found.
+            </div>
+          )}
         </div>
       </div>
 
