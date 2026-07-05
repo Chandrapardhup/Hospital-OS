@@ -60,10 +60,22 @@
   * {
     @apply border-border;
   }
+  html {
+    overflow-x: hidden;
+  }
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-primary);
     font-feature-settings: "rlig" 1, "calt" 1;
+    overflow-x: hidden;
+    text-transform: capitalize;
+  }
+  input, textarea, [type="email"], [type="password"] {
+    text-transform: none !important;
+  }
+  #root {
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 }
 
@@ -74,4 +86,20 @@
 
 .glass-panel {
   @apply bg-background/80 backdrop-blur-md border-r border-white/5;
+}
+
+/* Custom scrollbar for landing page */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 3px;
+}
+
+html {
+  scroll-behavior: smooth;
 }

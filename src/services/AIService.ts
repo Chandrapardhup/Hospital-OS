@@ -4,7 +4,7 @@ const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
 const genAI = API_KEY ? new GoogleGenerativeAI(API_KEY) : null;
 
 export class AIService {
-  private static async getAIResponse(systemPrompt: string, prompt: string, context: string = ""): Promise<string> {
+  static async getAIResponse(systemPrompt: string, prompt: string, context: string = ""): Promise<string> {
     if (!genAI) {
       return `[SIMULATED AI RESPONSE]\nRequires VITE_GEMINI_API_KEY to function.`;
     }

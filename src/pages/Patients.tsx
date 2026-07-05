@@ -68,7 +68,7 @@ export default function Patients() {
       {/* Table Section */}
       <div className="bg-card/30 border border-border rounded-2xl backdrop-blur-md overflow-hidden mt-6">
         <div className="p-4 border-b border-border/50 flex items-center justify-between">
-          <div className="relative w-full md:w-96">
+          <div className="relative w-full md:w-96 md:max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input 
               type="text" 

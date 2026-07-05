@@ -3,6 +3,7 @@ import { Users, AlertTriangle, TestTube, Pill, Calendar, Clock, Activity, Calend
 import { AddPatientDrawer } from '../../components/patients/AddPatientDrawer';
 import { BookAppointmentModal } from '../../components/appointments/BookAppointmentModal';
 import { useTranslation } from '../../translations';
+import { useHospitalStore } from '../../store/useHospitalStore';
 
 export function ReceptionDashboard() {
   const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);

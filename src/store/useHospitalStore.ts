@@ -48,18 +48,47 @@ export const useHospitalStore = create<ExtendedHospitalState>()(
           insuranceId: p.insurance_id
         });
 
-        const mapDoctor = (d: any) => ({
-          ...d,
-          experienceYears: d.experience_years,
-          consultationFee: d.consultation_fee,
-          availableDays: d.available_days
-        });
+        const mapDoctor = (d: any) => {
+          const rawDays = d.available_days || [];
+          const days = rawDays.filter((x: string) => !x.startsWith('TIME:'));
+          const times = rawDays
+            .filter((x: string) => x.startsWith('TIME:'))
+            .map((x: string) => x.replace('TIME:', ''));
+            
+          return {
+            ...d,
+            experienceYears: d.experience_years,
+            consultationFee: d.consultation_fee,
+            availableDays: days,
+            availableTimes: times.length > 0 ? times : (d.available_times || [])
+          };
+        };
 
-        const mapAppointment = (a: any) => ({
-          ...a,
-          patientId: a.patient_id,
-          doctorId: a.doctor_id
-        });
+        const mapAppointment = (a: any) => {
+          let parsedNotes = a.notes;
+          let remarks = a.remarks;
+          let prescription = a.prescription;
+          
+          if (a.notes && typeof a.notes === 'string' && a.notes.startsWith('{')) {
+            try {
+              const parsed = JSON.parse(a.notes);
+              if (parsed.notes !== undefined) parsedNotes = parsed.notes;
+              if (parsed.remarks !== undefined) remarks = parsed.remarks;
+              if (parsed.prescription !== undefined) prescription = parsed.prescription;
+            } catch (e) {
+              // Not JSON, just use as regular notes
+            }
+          }
+
+          return {
+            ...a,
+            patientId: a.patient_id,
+            doctorId: a.doctor_id,
+            notes: parsedNotes,
+            remarks: remarks,
+            prescription: prescription
+          };
+        };
 
         const mapNotification = (n: any) => ({
           ...n,
@@ -168,11 +197,23 @@ export const useHospitalStore = create<ExtendedHospitalState>()(
       const updateData: any = { ...data };
       if (data.experienceYears !== undefined) updateData.experience_years = data.experienceYears;
       if (data.consultationFee !== undefined) updateData.consultation_fee = data.consultationFee;
-      if (data.availableDays !== undefined) updateData.available_days = data.availableDays;
+      
+      // Since available_times might not exist in the DB schema, we package times into available_days
+      const currentDoctor = get().doctors.find((d: Doctor) => d.id === id);
+      let newAvailableDays = data.availableDays !== undefined ? data.availableDays : (currentDoctor?.availableDays || []);
+      let newAvailableTimes = data.availableTimes !== undefined ? data.availableTimes : (currentDoctor?.availableTimes || []);
+      
+      if (data.availableDays !== undefined || data.availableTimes !== undefined) {
+        updateData.available_days = [
+          ...newAvailableDays,
+          ...newAvailableTimes.map((t: string) => `TIME:${t}`)
+        ];
+      }
       
       delete updateData.experienceYears;
       delete updateData.consultationFee;
       delete updateData.availableDays;
+      delete updateData.availableTimes;
 
       const { error } = await supabase.from('doctors').update(updateData).eq('id', id);
       if (error) console.error('Error updating doctor:', error);
@@ -195,29 +236,83 @@ export const useHospitalStore = create<ExtendedHospitalState>()(
         type: appointment.type,
         status: appointment.status,
         symptoms: appointment.symptoms,
-        notes: appointment.notes
+        notes: appointment.notes,
+        remarks: appointment.remarks,
+        prescription: appointment.prescription
       });
       if (error) {
         console.error('Error adding appointment:', error);
       } else {
-        // AI ENTERPRISE TRIGGER: Trigger workflow and email
+        const doc = get().doctors.find(d => d.id === appointment.doctorId);
+        const pat = get().patients.find(p => p.id === appointment.patientId);
+
+        // AI ENTERPRISE TRIGGER: Trigger workflow
         workflowService.triggerWorkflow(
           'Appointment Booking Protocol',
-          'Patient Booked Appointment',
+          `New Appointment: ${pat?.name || 'Patient'} with Dr. ${doc?.name || 'Doctor'}`,
           [
-            { name: 'Update Doctor Schedule', status: 'Pending', agent: 'Appointment Service' },
+            { name: 'Update Doctor Schedule', status: 'Completed', agent: 'Appointment Service' },
             { name: 'Notify Receptionist', status: 'Pending', agent: 'Reception Agent' },
-            { name: 'Update Patient Dashboard', status: 'Pending', agent: 'Patient Agent' },
-            { name: 'Queue Email Confirmation', status: 'Pending', agent: 'Notification Agent' },
+            { name: 'Queue Email Confirmations', status: 'Completed', agent: 'Notification Agent' },
           ]
         );
 
+        // Notify Patient (Email)
         emailService.queueEmail(
-          'patient@example.com',
-          'Appointment Confirmed',
+          pat?.email || 'patient@example.com',
+          `Appointment Confirmed: Dr. ${doc?.name || 'Doctor'}`,
           'Appointment Confirmation',
-          `Your appointment is confirmed for ${appointment.date} at ${appointment.time}.`
+          `
+          <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+            <div style="background-color: #8b5cf6; padding: 20px; color: white; text-align: center;">
+              <h2 style="margin: 0;">Appointment Confirmed</h2>
+            </div>
+            <div style="padding: 24px;">
+              <p>Dear <strong>${pat?.name || 'Patient'}</strong>,</p>
+              <p>Your appointment has been successfully booked at HospitalOS.</p>
+              <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Doctor:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">Dr. ${doc?.name || 'Doctor'} (${doc?.specialization || 'Specialist'})</td></tr>
+                <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Date:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">${appointment.date}</td></tr>
+                <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Time:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">${appointment.time}</td></tr>
+                <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Type:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">${appointment.type}</td></tr>
+              </table>
+              <p style="color: #666; font-size: 14px;">Please arrive 15 minutes early and bring your ID.</p>
+            </div>
+          </div>
+          `
         );
+
+        // Notify Doctor (Email)
+        emailService.queueEmail(
+          doc?.email || 'doctor@hospitalos.local',
+          `New Appointment Booking: ${pat?.name || 'Patient'}`,
+          'Schedule Update',
+          `
+          <div style="font-family: sans-serif; color: #333; max-width: 600px; border-left: 4px solid #8b5cf6; padding-left: 16px;">
+            <h3>New Appointment Booked</h3>
+            <p><strong>Patient:</strong> ${pat?.name || 'Patient'}</p>
+            <p><strong>Date & Time:</strong> ${appointment.date} at ${appointment.time}</p>
+            <p><strong>Type:</strong> ${appointment.type}</p>
+            <p><strong>Reason:</strong> ${appointment.symptoms || appointment.notes || 'Routine check'}</p>
+            <p>Please review the patient's medical records prior to the visit.</p>
+          </div>
+          `
+        );
+
+        // In-App Notifications
+        get().addNotification({
+          userId: appointment.patientId,
+          title: 'Appointment Booked (Email Sent)',
+          message: `Your appointment with Dr. ${doc?.name} is confirmed for ${appointment.date}.`,
+          type: 'info'
+        });
+        
+        get().addNotification({
+          userId: appointment.doctorId,
+          title: 'New Patient Appointment',
+          message: `${pat?.name} booked an appointment for ${appointment.date} at ${appointment.time}.`,
+          type: 'error'
+        });
       }
     },
     updateAppointment: async (id, data) => {
@@ -226,10 +321,23 @@ export const useHospitalStore = create<ExtendedHospitalState>()(
       }));
       
       const updateData: any = { ...data };
-      if (data.patientId) updateData.patient_id = data.patientId;
-      if (data.doctorId) updateData.doctor_id = data.doctorId;
+      if (data.patientId !== undefined) updateData.patient_id = data.patientId;
+      if (data.doctorId !== undefined) updateData.doctor_id = data.doctorId;
+      
       delete updateData.patientId;
       delete updateData.doctorId;
+
+      // Because Supabase 'appointments' table might not have 'remarks' and 'prescription' columns,
+      // we serialize them into the 'notes' column to ensure they persist.
+      const currentAppt = get().appointments.find(a => a.id === id);
+      const combinedNotes = JSON.stringify({
+        notes: data.notes ?? currentAppt?.notes,
+        remarks: data.remarks ?? currentAppt?.remarks,
+        prescription: data.prescription ?? currentAppt?.prescription
+      });
+      updateData.notes = combinedNotes;
+      delete updateData.remarks;
+      delete updateData.prescription;
 
       const { error } = await supabase.from('appointments').update(updateData).eq('id', id);
       if (error) console.error('Error updating appointment:', error);

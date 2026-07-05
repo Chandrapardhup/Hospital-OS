@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { Users, Clock, CalendarCheck, Activity, Search } from 'lucide-react';
+import { Users, Clock, CalendarCheck, Activity, Search, Calendar, Edit } from 'lucide-react';
 import { useHospitalStore } from '../../store/useHospitalStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import type { AppointmentStatus } from '../../types/hospital';
 import { useTranslation } from '../../translations';
+import { ManageScheduleModal } from '../../components/doctors/ManageScheduleModal';
+import { EditAppointmentModal } from '../../components/appointments/EditAppointmentModal';
+import type { Appointment } from '../../types/hospital';
 
 export default function DoctorDashboard() {
   const user = useAuthStore(state => state.user);
@@ -26,11 +29,17 @@ export default function DoctorDashboard() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
+  const [dismissedEmergencies, setDismissedEmergencies] = useState<string[]>([]);
   
   const filteredAppointments = myAppointments.filter(a => 
     getPatientName(a.patientId).toLowerCase().includes(searchTerm.toLowerCase()) || 
     a.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const activeEmergencies = myAppointments.filter(a => a.type === 'Emergency' && a.status === 'Scheduled' && !dismissedEmergencies.includes(a.id));
+  const emergency = activeEmergencies[0]; // Get the first active emergency
 
   if (!currentDoctor) {
     return (
@@ -56,6 +65,12 @@ export default function DoctorDashboard() {
             <h1 className="text-3xl font-bold text-foreground tracking-tight">Physician Workspace</h1>
             <p className="text-sm text-muted-foreground mt-1">{t('welcome_back')}, {currentDoctor.name}.</p>
           </div>
+          <button 
+            onClick={() => setIsScheduleModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary hover:bg-primary/20 font-medium rounded-xl transition-all"
+          >
+            <Calendar className="w-4 h-4" /> Manage Schedule
+          </button>
         </div>
       </div>
 
@@ -111,7 +126,49 @@ export default function DoctorDashboard() {
           </div>
           <AIPrescriptionModal />
         </div>
-        <div className="overflow-x-auto">
+        {/* Mobile View */}
+        <div className="md:hidden flex flex-col gap-4 p-4">
+          {filteredAppointments.length > 0 ? (
+            filteredAppointments.map((appointment) => (
+              <div key={appointment.id} className="bg-card/50 border border-border p-4 rounded-xl flex flex-col gap-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-bold text-foreground text-base">{getPatientName(appointment.patientId)}</h4>
+                    <p className="text-xs text-muted-foreground font-mono">{appointment.date} @ {appointment.time}</p>
+                  </div>
+                  <StatusBadge status={appointment.status} />
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className={`px-2 py-1 rounded-md font-bold uppercase tracking-wider ${
+                    appointment.type === 'Emergency' ? 'bg-red-500/20 text-red-500' : 'bg-primary/20 text-primary'
+                  }`}>
+                    {appointment.type}
+                  </span>
+                </div>
+                {appointment.symptoms && (
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    <span className="font-semibold text-foreground/80">Symptoms:</span> {appointment.symptoms}
+                  </p>
+                )}
+                <div className="pt-2 border-t border-border flex justify-end gap-2">
+                  <button 
+                    onClick={() => setEditingAppointment(appointment)}
+                    className="flex-1 text-amber-500 hover:bg-amber-500/20 font-medium text-xs transition-colors px-3 py-2 rounded-lg bg-amber-500/10 flex items-center justify-center gap-2"
+                  >
+                    <Edit className="w-3.5 h-3.5" /> Edit & Prescribe
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="py-8 text-center text-muted-foreground bg-card/30 rounded-xl border border-border/50 border-dashed">
+              No appointments found matching your search.
+            </div>
+          )}
+        </div>
+
+        {/* Desktop View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="text-[10px] uppercase tracking-widest text-muted-foreground bg-background/50">
               <tr>
@@ -128,22 +185,31 @@ export default function DoctorDashboard() {
                 filteredAppointments.map((appointment) => (
                   <tr key={appointment.id} className="hover:bg-muted transition-colors group">
                     <td className="px-6 py-4 font-mono text-foreground text-xs">
-                      {appointment.time} <span className="text-muted-foreground mx-1">•</span> {appointment.date}
+                      {appointment.date}<br/>
+                      <span className="text-muted-foreground">{appointment.time}</span>
                     </td>
-                    <td className="px-6 py-4 font-medium text-foreground">{getPatientName(appointment.patientId)}</td>
-                    <td className="px-6 py-4 text-muted-foreground">{appointment.type}</td>
+                    <td className="px-6 py-4 font-medium text-foreground">
+                      {getPatientName(appointment.patientId)}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                        appointment.type === 'Emergency' ? 'bg-red-500/20 text-red-500' : 'bg-primary/20 text-primary'
+                      }`}>
+                        {appointment.type}
+                      </span>
+                    </td>
                     <td className="px-6 py-4 text-muted-foreground truncate max-w-[200px]">
                       {appointment.symptoms || appointment.notes || '-'}
                     </td>
                     <td className="px-6 py-4">
                       <StatusBadge status={appointment.status} />
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4 text-right flex justify-end gap-2">
                       <button 
-                        onClick={() => setSelectedPatientId(appointment.patientId)}
-                        className="text-primary hover:text-primary/80 font-medium text-xs transition-colors px-3 py-1.5 rounded-lg bg-primary/10"
+                        onClick={() => setEditingAppointment(appointment)}
+                        className="text-amber-500 hover:text-amber-600 font-medium text-xs transition-colors px-3 py-1.5 rounded-lg bg-amber-500/10 flex items-center gap-1"
                       >
-                        View Timeline
+                        <Edit className="w-3 h-3" /> Edit & Prescribe
                       </button>
                     </td>
                   </tr>
@@ -159,10 +225,16 @@ export default function DoctorDashboard() {
           </table>
         </div>
       </div>
-      <PatientTimelineModal 
-        patientId={selectedPatientId} 
-        open={selectedPatientId !== null} 
-        onOpenChange={(open) => !open && setSelectedPatientId(null)} 
+
+      <ManageScheduleModal 
+        open={isScheduleModalOpen}
+        onOpenChange={setIsScheduleModalOpen}
+        doctor={currentDoctor}
+      />
+      <EditAppointmentModal 
+        open={editingAppointment !== null}
+        onOpenChange={(open) => !open && setEditingAppointment(null)}
+        appointment={editingAppointment}
       />
     </div>
   );

@@ -63,7 +63,7 @@ export default function Doctors() {
               <StatusBadge status={doctor.status} />
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Fee</p>
                 <p className="text-lg font-semibold text-foreground">${doctor.consultationFee}</p>
@@ -71,6 +71,28 @@ export default function Doctors() {
               <div>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Exp</p>
                 <p className="text-sm font-medium text-foreground pt-1">{doctor.experienceYears} Years</p>
+              </div>
+            </div>
+            
+            <div className="pt-4 border-t border-border/50">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Schedule</p>
+              <div className="flex gap-2 mb-2 flex-wrap">
+                {doctor.availableDays && doctor.availableDays.length > 0 ? (
+                  doctor.availableDays.map(day => (
+                    <span key={day} className="text-xs px-2 py-1 rounded bg-muted/50 text-foreground">{day.substring(0, 3)}</span>
+                  ))
+                ) : (
+                  <span className="text-xs text-muted-foreground">No days set</span>
+                )}
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {doctor.availableTimes && doctor.availableTimes.length > 0 ? (
+                  doctor.availableTimes.map(time => (
+                    <span key={time} className="text-[10px] px-2 py-1 rounded border border-border/50 text-muted-foreground">{time}</span>
+                  ))
+                ) : (
+                  <span className="text-[10px] text-muted-foreground">No times set</span>
+                )}
               </div>
             </div>
           </div>

@@ -22,19 +22,95 @@ export class AppointmentService {
     const doctor = useHospitalStore.getState().doctors.find(d => d.id === data.doctorId);
     const patient = useHospitalStore.getState().patients.find(p => p.id === data.patientId);
     
-    useHospitalStore.getState().addNotification({
-      userId: `usr_doc${data.doctorId.replace('doc_', '')}`, // Mock matching user logic
-      title: 'New Appointment Booked',
-      message: `You have a new appointment with ${patient?.name || 'a patient'} on ${data.date} at ${data.time}.`,
-      type: 'info'
+    // Get the real auth user IDs for notifications
+    let doctorUserId = data.doctorId;
+    let patientUserId = data.patientId;
+    
+    // Dynamically import auth store to find the actual User UUIDs matching the emails
+    import('../store/useAuthStore').then(({ useAuthStore }) => {
+      const allUsers = useAuthStore.getState().users;
+      const doctorAuthUser = allUsers.find(u => u.email === doctor?.email);
+      const patientAuthUser = allUsers.find(u => u.email === patient?.email);
+      
+      if (doctorAuthUser) doctorUserId = doctorAuthUser.id;
+      if (patientAuthUser) patientUserId = patientAuthUser.id;
+
+      // Doctor notification & email
+      if (doctor) {
+        useHospitalStore.getState().addNotification({
+          userId: doctorUserId,
+          title: 'New Appointment Booked',
+          message: `You have a new appointment with ${patient?.name || 'a patient'} on ${data.date} at ${data.time}.`,
+          type: 'info'
+        });
+        import('./emailService').then(({ emailService }) => {
+          emailService.queueEmail({
+            to: doctor.email || 'doctor@hospital.com',
+            subject: 'New Appointment Booked',
+            body: `You have a new appointment with ${patient?.name || 'a patient'} on ${data.date} at ${data.time}.`
+          });
+        });
+      }
+
+      // Patient notification & email
+      if (patient) {
+        useHospitalStore.getState().addNotification({
+          userId: patientUserId,
+          title: 'Appointment Confirmed',
+          message: `Your appointment with Dr. ${doctor?.name || 'Doctor'} on ${data.date} at ${data.time} has been confirmed.`,
+          type: 'success'
+        });
+        import('./emailService').then(({ emailService }) => {
+          emailService.queueEmail({
+            to: patient.email,
+            subject: 'Appointment Confirmed',
+            body: `Your appointment with Dr. ${doctor?.name || 'Doctor'} on ${data.date} at ${data.time} has been confirmed.`
+          });
+        });
+      }
     });
 
     return newAppointment;
   }
 
-  static async updateAppointmentStatus(id: string, status: Appointment['status']): Promise<void> {
+  static async updateAppointment(id: string, data: Partial<Appointment>): Promise<void> {
     await delay(400);
-    useHospitalStore.getState().updateAppointment(id, { status });
+    useHospitalStore.getState().updateAppointment(id, data);
+    
+    // Check if we need to notify the patient about an update
+    if (data.status || data.remarks || data.prescription) {
+      const allAppointments = useHospitalStore.getState().appointments;
+      const updatedAppt = allAppointments.find(a => a.id === id);
+      
+      if (updatedAppt) {
+        const patient = useHospitalStore.getState().patients.find(p => p.id === updatedAppt.patientId);
+        const doctor = useHospitalStore.getState().doctors.find(d => d.id === updatedAppt.doctorId);
+        
+        if (patient) {
+          import('../store/useAuthStore').then(({ useAuthStore }) => {
+            const allUsers = useAuthStore.getState().users;
+            const patientAuthUser = allUsers.find(u => u.email === patient.email);
+            
+            // Notify via in-app
+            useHospitalStore.getState().addNotification({
+              userId: patientAuthUser ? patientAuthUser.id : patient.id,
+              title: 'Appointment Updated',
+              message: `Dr. ${doctor?.name || 'Doctor'} has updated your appointment status to ${data.status || updatedAppt.status}.`,
+              type: 'info'
+            });
+            
+            // Send Email
+            import('./emailService').then(({ emailService }) => {
+              emailService.queueEmail({
+                to: patient.email,
+                subject: 'Your Appointment has been Updated',
+                body: `Hello ${patient.name},\n\nDr. ${doctor?.name || 'Doctor'} has updated your appointment.\nStatus: ${data.status || updatedAppt.status}\n\n${data.prescription ? 'A new prescription has been added.\n' : ''}\nPlease check your patient dashboard for full details.`
+              });
+            });
+          });
+        }
+      }
+    }
   }
 
   static async deleteAppointment(id: string): Promise<void> {

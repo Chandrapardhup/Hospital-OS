@@ -46,6 +46,7 @@ export function BookAppointmentModal({ open, onOpenChange, defaultPatientId, isP
     handleSubmit,
     setValue,
     reset,
+    watch,
     formState: { errors },
   } = useForm<AppointmentFormValues>({
     resolver: zodResolver(appointmentSchema),
@@ -56,24 +57,41 @@ export function BookAppointmentModal({ open, onOpenChange, defaultPatientId, isP
     }
   });
 
+  const watchDoctorId = watch('doctorId');
+  const selectedDoctor = doctors.find(d => d.id === watchDoctorId);
+  const availableTimes = selectedDoctor?.availableTimes || [];
+
   const onSubmit = async (data: AppointmentFormValues) => {
     try {
       setIsSubmitting(true);
       
-      let finalPatientId = data.patientId || defaultPatientId;
+      let finalPatientId = defaultPatientId;
       
-      // If in patient mode and they entered a custom name that doesn't match default
-      if (isPatientMode && data.patientName && finalPatientId) {
-        const defaultName = patients.find(p => p.id === defaultPatientId)?.name;
-        if (data.patientName !== defaultName) {
-           // We are booking for a relative under the same patient ID or a new ID
-           // For simplicity in mockDB, we'll just create a sub-patient or use the same ID
-           finalPatientId = defaultPatientId; // keeping it attached to their profile so they can see it
+      if (data.patientName) {
+        // Try to find by exact name match first
+        const existingPatient = patients.find(p => p.name.toLowerCase() === data.patientName?.toLowerCase());
+        if (existingPatient) {
+          finalPatientId = existingPatient.id;
+        } else {
+          // It's a new name, create a placeholder patient
+          finalPatientId = `pat_${Date.now()}`;
+          await addPatient({
+            id: finalPatientId,
+            name: data.patientName,
+            email: `${data.patientName.replace(/\\s+/g, '').toLowerCase() || 'unknown'}@hospitalos.local`,
+            phone: 'N/A',
+            dob: '2000-01-01',
+            gender: 'Other',
+            bloodGroup: 'Unknown',
+            address: 'N/A',
+            status: 'Outpatient',
+            createdAt: new Date().toISOString()
+          });
         }
       }
       
       if (!finalPatientId) {
-        alert("Patient selection is required.");
+        alert("Patient Name is required.");
         return;
       }
       
@@ -110,28 +128,14 @@ export function BookAppointmentModal({ open, onOpenChange, defaultPatientId, isP
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground/80">
-                {isPatientMode ? "Patient Name (You or Relative)" : "Select Patient"}
+                Patient Name
               </label>
-              
-              {isPatientMode ? (
-                <Input 
-                  {...register('patientName')} 
-                  placeholder="Enter patient name" 
-                  className="bg-muted border-border text-foreground placeholder:text-foreground/30"
-                />
-              ) : (
-                <Select onValueChange={(val) => setValue('patientId', val)} defaultValue={defaultPatientId}>
-                  <SelectTrigger className="bg-muted border-border text-foreground">
-                    <SelectValue placeholder="Select patient" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background border-border text-foreground max-h-64">
-                    {patients.map(p => (
-                      <SelectItem key={p.id} value={p.id}>{p.name} ({p.id})</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              {errors.patientId && !isPatientMode && <p className="text-xs text-destructive">{errors.patientId.message}</p>}
+              <Input 
+                {...register('patientName')} 
+                placeholder="Enter patient name" 
+                className="bg-muted border-border text-foreground placeholder:text-foreground/30"
+              />
+              {errors.patientName && <p className="text-xs text-destructive">{errors.patientName.message}</p>}
             </div>
             
             <div className="space-y-2">
@@ -156,18 +160,35 @@ export function BookAppointmentModal({ open, onOpenChange, defaultPatientId, isP
               <Input 
                 {...register('date')} 
                 type="date"
+                min={new Date().toISOString().split('T')[0]} // Prevent past dates
                 className="bg-muted border-border text-foreground [&::-webkit-calendar-picker-indicator]:invert"
               />
               {errors.date && <p className="text-xs text-destructive">{errors.date.message}</p>}
+              {selectedDoctor && (
+                <p className="text-xs text-muted-foreground mt-1">Available: {selectedDoctor.availableDays.join(', ')}</p>
+              )}
             </div>
             
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground/80">Time</label>
-              <Input 
-                {...register('time')} 
-                type="time"
-                className="bg-muted border-border text-foreground [&::-webkit-calendar-picker-indicator]:invert"
-              />
+              {availableTimes.length > 0 ? (
+                <Select onValueChange={(val) => setValue('time', val)}>
+                  <SelectTrigger className="bg-muted border-border text-foreground">
+                    <SelectValue placeholder="Select available time" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border-border text-foreground max-h-64">
+                    {availableTimes.map(t => (
+                      <SelectItem key={t} value={t}>{t}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Select disabled>
+                  <SelectTrigger className="bg-muted border-border text-muted-foreground opacity-50">
+                    <SelectValue placeholder={selectedDoctor ? "No available times for this doctor" : "Select a doctor first"} />
+                  </SelectTrigger>
+                </Select>
+              )}
               {errors.time && <p className="text-xs text-destructive">{errors.time.message}</p>}
             </div>
           </div>

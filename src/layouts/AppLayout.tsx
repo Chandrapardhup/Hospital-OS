@@ -32,6 +32,7 @@ import type { Role } from "../types/auth";
 import { useTranslation } from "../translations";
 import { Settings as SettingsIcon } from "lucide-react";
 import { AIService } from '../services/AIService';
+import { supabase } from '../lib/supabase';
 
 type NavItem = {
   icon: React.ElementType;
@@ -75,15 +76,52 @@ export default function AppLayout() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showIOSPrompt, setShowIOSPrompt] = useState(false);
   
   // Auto-close mobile menu on route change
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
-  const handleLogout = () => {
+  // Detect iOS browser (not standalone PWA)
+  useEffect(() => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true;
+    
+    if (isIOS && !isStandalone) {
+      setShowIOSPrompt(true);
+    }
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     logout();
   };
+
+  // Global Emergency Logic for Doctors
+  const doctors = useHospitalStore(state => state.doctors);
+  const appointments = useHospitalStore(state => state.appointments);
+  const patients = useHospitalStore(state => state.patients);
+  const currentDoctor = doctors.find(d => d.email === user?.email);
+  const myAppointments = currentDoctor ? appointments.filter(a => a.doctorId === currentDoctor.id) : [];
+  
+  const [dismissedEmergencies, setDismissedEmergenciesState] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('hospitalos_dismissed_emergencies');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const setDismissedEmergencies = (newIds: string[]) => {
+    setDismissedEmergenciesState(newIds);
+    localStorage.setItem('hospitalos_dismissed_emergencies', JSON.stringify(newIds));
+  };
+
+  const activeEmergencies = myAppointments.filter(a => a.type === 'Emergency' && a.status === 'Scheduled' && !dismissedEmergencies.includes(a.id));
+  const emergency = activeEmergencies[0];
+  const getPatientName = (id: string) => patients.find(p => p.id === id)?.name || id;
 
   const filteredNavItems = navItems.filter(item => user && item.roles.includes(user.role));
   
@@ -103,11 +141,48 @@ export default function AppLayout() {
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden pb-16 md:pb-0">
       
+      {/* GLOBAL EMERGENCY NOTIFICATION FOR DOCTORS */}
+      {user?.role === 'doctor' && emergency && (
+        <div className="fixed top-20 right-4 z-[100] max-w-sm w-full animate-in slide-in-from-top-2 fade-in duration-300">
+          <div className="bg-card border-2 border-red-500 rounded-2xl p-5 shadow-[0_10px_40px_rgba(239,68,68,0.3)] relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/20 rounded-full blur-2xl -mr-8 -mt-8 animate-pulse" />
+            <div className="relative z-10 space-y-3">
+              <div className="flex items-center gap-2 text-red-500 font-bold uppercase tracking-widest text-[10px]">
+                <AlertTriangle className="w-4 h-4 animate-pulse" />
+                CRITICAL EMERGENCY
+              </div>
+              <h2 className="text-lg font-bold text-foreground leading-tight">{getPatientName(emergency.patientId)}</h2>
+              <div className="bg-red-500/10 border border-red-500/20 p-3 rounded-xl text-red-500">
+                <p className="text-[10px] font-bold uppercase tracking-wider mb-1">Symptoms</p>
+                <p className="text-xs line-clamp-2">{emergency.symptoms || 'Immediate evaluation required.'}</p>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button 
+                  onClick={() => {
+                    setDismissedEmergencies([...dismissedEmergencies, emergency.id]);
+                    navigate('/doctor');
+                  }}
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-3 text-xs rounded-lg transition-colors text-center"
+                >
+                  Treat Now
+                </button>
+                <button 
+                  onClick={() => setDismissedEmergencies([...dismissedEmergencies, emergency.id])}
+                  className="px-3 py-2 border border-border hover:bg-muted text-foreground font-medium text-xs rounded-lg transition-colors"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col w-20 lg:w-64 border-r border-border bg-card/30 backdrop-blur-md transition-all duration-300">
         <div className="p-6 flex items-center gap-3 border-b border-border/50 justify-center lg:justify-start">
-          <div className="min-w-[32px] w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-            <Bot className="w-5 h-5 text-foreground" />
+          <div className="min-w-[32px] w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-black">
+            <img src="/logo.png" alt="HospitalOS Logo" className="w-full h-full object-cover" />
           </div>
           <div className="hidden lg:block">
             <h1 className="font-bold text-sm tracking-widest text-foreground">HOSPITAL<span className="text-primary font-black">OS</span></h1>
@@ -190,6 +265,29 @@ export default function AppLayout() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-card/40 via-background to-background relative w-full">
+        {/* iOS PWA Install Prompt */}
+        <AnimatePresence>
+          {showIOSPrompt && (
+            <motion.div 
+              initial={{ opacity: 0, y: -50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -50 }}
+              className="md:hidden bg-primary/10 border-b border-primary/20 px-4 py-3 flex items-start gap-3 z-50"
+            >
+              <div className="p-2 bg-primary/20 rounded-xl text-primary mt-0.5">
+                <AlertTriangle className="w-4 h-4" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-foreground">Install HospitalOS</p>
+                <p className="text-xs text-muted-foreground mt-0.5">For native push notifications, tap the share button and select <strong>"Add to Home Screen"</strong>.</p>
+              </div>
+              <button onClick={() => setShowIOSPrompt(false)} className="p-2 -mr-2 text-muted-foreground hover:text-foreground">
+                <X className="w-4 h-4" />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Topbar */}
         <header className="h-16 min-h-[64px] border-b border-border/50 flex items-center justify-between px-4 md:px-6 bg-card/20 backdrop-blur-sm z-10 sticky top-0 w-full">
           
@@ -263,12 +361,12 @@ export default function AppLayout() {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", bounce: 0, duration: 0.3 }}
-              className="md:hidden fixed top-0 left-0 bottom-0 w-72 bg-card border-r border-border shadow-2xl z-50 flex flex-col"
+              className="md:hidden fixed top-0 left-0 bottom-0 w-[85vw] max-w-sm bg-card border-r border-border shadow-2xl z-50 flex flex-col"
             >
               <div className="p-4 flex items-center justify-between border-b border-border/50">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                    <Bot className="w-5 h-5 text-foreground" />
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden bg-black">
+                    <img src="/logo.png" alt="HospitalOS Logo" className="w-full h-full object-cover" />
                   </div>
                   <div>
                     <h1 className="font-bold text-sm tracking-widest text-foreground">HOSPITAL<span className="text-primary font-black">OS</span></h1>

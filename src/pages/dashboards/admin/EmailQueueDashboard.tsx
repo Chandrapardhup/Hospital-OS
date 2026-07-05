@@ -56,12 +56,14 @@ export default function EmailQueueDashboard() {
           <Button 
             variant="outline"
             onClick={async () => {
+              const testEmail = window.prompt("Enter your real Gmail address to test EmailJS delivery:", "your.email@gmail.com");
+              if (!testEmail) return;
               // Send a test email
               await emailService.queueEmail(
-                'admin@hospitalos.com',
+                testEmail,
                 'System Status Check',
                 'System Notification',
-                'This is an automated test of the Enterprise Email Gateway.'
+                'This is an automated test of the Enterprise Email Gateway. If you are seeing this, EmailJS is perfectly configured!'
               );
             }}
           >

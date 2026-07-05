@@ -23,7 +23,34 @@ export default function HospitalBrainDashboard() {
 
   const handleAction = async (id: string, action: 'Approved' | 'Rejected' | 'Ignored') => {
     await updateRecommendationStatus(id, action);
-    // In a real app, if action === 'Approved', we'd trigger the respective side effect here.
+    const { addWorkflow, addEmail } = useEnterpriseStore.getState();
+    const rec = recommendations.find(r => r.id === id);
+
+    if (action === 'Approved' && rec) {
+      // 1. Spin up an automated workflow
+      await addWorkflow({
+        id: crypto.randomUUID(),
+        name: `Implement: ${rec.title}`,
+        triggerEvent: 'Admin Approved',
+        status: 'Running',
+        steps: [
+          { id: crypto.randomUUID(), name: 'Initialize', status: 'Completed', agent: 'System' },
+          { id: crypto.randomUUID(), name: 'Execute Action', status: 'Running', agent: 'Automation' }
+        ],
+        createdAt: new Date().toISOString()
+      });
+
+      // 2. Dispatch an email
+      await addEmail({
+        id: crypto.randomUUID(),
+        subject: `[AI ACTION] ${rec.title} Approved`,
+        recipient: `${rec.department.toLowerCase().replace(' ', '')}_head@hospitalos.local`,
+        status: 'Delivered',
+        template: 'action_approval',
+        content: `Automated Action Approved:\n\nInsight: ${rec.title}\nReason: ${rec.reason}\nAction: ${rec.suggestedAction}\n\nA new workflow has been spun up to track progress.`,
+        createdAt: new Date().toISOString()
+      });
+    }
   };
 
   const getPriorityColor = (priority: string) => {

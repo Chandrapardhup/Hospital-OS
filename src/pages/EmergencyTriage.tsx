@@ -18,12 +18,64 @@ export default function EmergencyTriage() {
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [evaluation, setEvaluation] = useState<{score: number, category: string, notification: string} | null>(null);
 
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false);
+  const [instructions, setInstructions] = useState('');
+  const [selectedPatient, setSelectedPatient] = useState<any>(null);
+
+  const doctors = useHospitalStore(state => state.doctors);
+  const addPatient = useHospitalStore(state => state.addPatient);
+  const addAppointment = useHospitalStore(state => state.addAppointment);
+
   const handleEvaluate = async () => {
     if (!symptoms) return;
     setIsEvaluating(true);
     const result = await AIService.evaluateEmergencyPriority(symptoms);
     setEvaluation(result);
     setIsEvaluating(false);
+  };
+
+  const handleAdmit = async () => {
+    const pId = `emg_${Date.now()}`;
+    await addPatient({
+      id: pId,
+      name: 'Emergency Patient ' + Math.floor(Math.random() * 1000),
+      email: 'emergency@hospitalos.local',
+      phone: 'N/A',
+      dob: '2000-01-01',
+      gender: 'Other',
+      bloodGroup: 'Unknown',
+      address: 'N/A',
+      status: 'Emergency',
+      createdAt: new Date().toISOString()
+    });
+
+    await addAppointment({
+      id: `apt_${Date.now()}`,
+      patientId: pId,
+      doctorId: doctors[0]?.id || 'unknown',
+      date: new Date().toISOString().split('T')[0],
+      time: new Date().toTimeString().substring(0, 5),
+      type: 'Emergency',
+      status: 'Scheduled',
+      symptoms: symptoms
+    });
+
+    // Notify ALL doctors with a critical popup
+    doctors.forEach(doc => {
+      import('../store/useAuthStore').then(({ useAuthStore }) => {
+        const docAuth = useAuthStore.getState().users.find(u => u.email === doc.email);
+        addNotification({
+          userId: docAuth ? docAuth.id : doc.id,
+          title: 'CRITICAL EMERGENCY ADMITTED',
+          message: `Priority: ${evaluation?.category || 'High'}. Symptoms: ${symptoms}`,
+          type: 'error'
+        });
+      });
+    });
+
+    setIsAdmitOpen(false);
+    setSymptoms('');
+    setEvaluation(null);
   };
 
   return (
@@ -81,6 +133,13 @@ export default function EmergencyTriage() {
                 <button className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg text-sm font-medium transition-colors">
                   Assign Doctor
                 </button>
+                <button 
+                  onClick={() => { setSelectedPatient(patient); setIsInstructionOpen(true); }}
+                  className="p-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-foreground group relative"
+                  title="Doctor Instructions"
+                >
+                  <Bot className="w-5 h-5 group-hover:text-primary transition-colors" />
+                </button>
                 <button className="p-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-foreground">
                   <Activity className="w-5 h-5" />
                 </button>
@@ -90,10 +149,11 @@ export default function EmergencyTriage() {
         )}
       </div>
 
+      {/* Triage Intake Dialog */}
       <Dialog.Root open={isAdmitOpen} onOpenChange={setIsAdmitOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50" />
-          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl bg-card border border-border shadow-2xl rounded-2xl p-6 z-50">
+          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-xl bg-card border border-border shadow-2xl rounded-2xl p-6 z-50">
             <div className="flex items-center justify-between mb-4">
               <Dialog.Title className="text-xl font-bold text-foreground flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-red-500" /> Triage Intake
@@ -123,11 +183,60 @@ export default function EmergencyTriage() {
                     <span className="text-lg font-black">Score: {evaluation.score}/100</span>
                   </div>
                   <p className="text-sm">{evaluation.notification}</p>
-                  <button onClick={() => { setIsAdmitOpen(false); setSymptoms(''); setEvaluation(null); }} className="mt-4 w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2 rounded-lg text-sm">
+                  <button onClick={handleAdmit} className="mt-4 w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2 rounded-lg text-sm">
                     Admit to Queue
                   </button>
                 </div>
               )}
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
+      {/* Doctor Instructions Dialog */}
+      <Dialog.Root open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50" />
+          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-md bg-card border border-border shadow-2xl rounded-2xl p-6 z-50">
+            <div className="flex items-center justify-between mb-4">
+              <Dialog.Title className="text-xl font-bold text-foreground flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-red-500" /> Pre-Arrival Instructions
+              </Dialog.Title>
+            </div>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Dispatch immediate instructions to Reception and Nursing staff for {selectedPatient?.name}.
+              </p>
+              <textarea 
+                value={instructions}
+                onChange={e => setInstructions(e.target.value)}
+                placeholder="e.g. Administer O2 immediately, prepare ECG, I am 5 mins away."
+                className="w-full h-32 bg-background border border-border rounded-xl p-4 text-sm focus:border-red-500 focus:outline-none"
+              />
+              <button 
+                onClick={() => {
+                  if (selectedPatient && instructions) {
+                    addNotification({
+                      userId: 'reception', // Send to general reception
+                      title: `EMERGENCY INSTRUCTION: ${selectedPatient.name}`,
+                      message: `Doctor Instructions: ${instructions}`,
+                      type: 'error'
+                    });
+                    addNotification({
+                      userId: 'nurse', // Send to general nurse staff
+                      title: `EMERGENCY INSTRUCTION: ${selectedPatient.name}`,
+                      message: `Doctor Instructions: ${instructions}`,
+                      type: 'error'
+                    });
+                    setIsInstructionOpen(false);
+                    setInstructions('');
+                  }
+                }}
+                disabled={!instructions}
+                className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl transition-colors disabled:opacity-50"
+              >
+                Broadcast to Staff
+              </button>
             </div>
           </Dialog.Content>
         </Dialog.Portal>

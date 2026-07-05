@@ -26,6 +26,18 @@ export default function NotificationsHub() {
             <h1 className="text-3xl font-bold text-foreground tracking-tight">Notifications Hub</h1>
             <p className="text-sm text-muted-foreground mt-1">Your recent alerts and messages</p>
           </div>
+          {userNotifications.some(n => !n.isRead) && (
+            <button 
+              onClick={() => {
+                userNotifications.forEach(n => {
+                  if (!n.isRead) markNotificationRead(n.id);
+                });
+              }}
+              className="px-4 py-2 bg-primary/10 text-primary hover:bg-primary/20 font-medium rounded-xl transition-colors text-sm"
+            >
+              Mark All as Read
+            </button>
+          )}
         </div>
       </div>
 

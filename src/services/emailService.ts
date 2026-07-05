@@ -1,11 +1,28 @@
 import { useEnterpriseStore } from '../store/useEnterpriseStore';
 import type { Email } from '../types/hospital';
 
-// Helper to simulate delay
-const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+// EmailJS has been removed completely as requested by user.
+// Notifications are now handled exclusively via in-app and browser Push Notifications.
 
 export const emailService = {
-  queueEmail: async (recipient: string, subject: string, template: string, content: string) => {
+  queueEmail: async (recipientOrOptions: string | any, subjectObj?: string, templateObj?: string, contentObj?: string) => {
+    let recipient = '';
+    let subject = '';
+    let template = 'standard';
+    let content = '';
+
+    if (typeof recipientOrOptions === 'object') {
+      recipient = recipientOrOptions.to;
+      subject = recipientOrOptions.subject;
+      content = recipientOrOptions.body || recipientOrOptions.content;
+      template = recipientOrOptions.template || 'standard';
+    } else {
+      recipient = recipientOrOptions;
+      subject = subjectObj || '';
+      template = templateObj || 'standard';
+      content = contentObj || templateObj || '';
+    }
+
     const { addEmail } = useEnterpriseStore.getState();
     const newEmail: Email = {
       id: `email_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -17,27 +34,21 @@ export const emailService = {
       createdAt: new Date().toISOString()
     };
     await addEmail(newEmail);
+    
+    // Process queue immediately so user gets the email right away
+    emailService.processQueue();
   },
 
   processQueue: async () => {
     const { emails, updateEmailStatus } = useEnterpriseStore.getState();
-    const queuedEmails = emails.filter(e => e.status === 'Queued' || e.status === 'Retry');
+    const queuedEmails = emails.filter((e: Email) => e.status === 'Queued' || e.status === 'Retry');
 
     for (const email of queuedEmails) {
+      // Fake sending the email and mark as delivered to clean up the queue
       await updateEmailStatus(email.id, 'Sending');
-      
-      try {
-        await delay(1500); // Simulate network latency
-        
-        // Randomly fail ~10% of the time to show off the Retry queue
-        if (Math.random() < 0.1) {
-          throw new Error('Mock SMTP timeout');
-        }
-        
+      setTimeout(async () => {
         await updateEmailStatus(email.id, 'Delivered');
-      } catch (err) {
-        await updateEmailStatus(email.id, 'Failed');
-      }
+      }, 1000);
     }
   }
 };

@@ -30,6 +30,7 @@ export interface Doctor {
   experienceYears: number;
   consultationFee: number;
   availableDays: string[];
+  availableTimes?: string[];
   status: 'Available' | 'On Leave' | 'In Surgery';
   avatar?: string;
 }
@@ -44,6 +45,8 @@ export interface Appointment {
   status: AppointmentStatus;
   symptoms?: string;
   notes?: string;
+  remarks?: string;
+  prescription?: string;
 }
 
 export interface Notification {

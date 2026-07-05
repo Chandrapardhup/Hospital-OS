@@ -79,6 +79,7 @@ export default function Appointments() {
                 <th className="px-6 py-4 font-bold">DOCTOR</th>
                 <th className="px-6 py-4 font-bold">DEPARTMENT</th>
                 <th className="px-6 py-4 font-bold">TYPE</th>
+                <th className="px-6 py-4 font-bold">DETAILS</th>
                 <th className="px-6 py-4 font-bold">STATUS</th>
               </tr>
             </thead>
@@ -92,6 +93,11 @@ export default function Appointments() {
                     <td className="px-6 py-4 text-muted-foreground">{doctor?.name || appointment.doctorId}</td>
                     <td className="px-6 py-4 text-muted-foreground">{doctor?.department || '-'}</td>
                     <td className="px-6 py-4 text-muted-foreground">{appointment.type}</td>
+                    <td className="px-6 py-4 text-xs">
+                      {appointment.remarks && <p className="text-foreground/80 truncate max-w-[150px]"><span className="text-muted-foreground">Notes:</span> {appointment.remarks}</p>}
+                      {appointment.prescription && <p className="text-primary truncate max-w-[150px]"><span className="text-muted-foreground">Rx:</span> {appointment.prescription}</p>}
+                      {!appointment.remarks && !appointment.prescription && <span className="text-muted-foreground">-</span>}
+                    </td>
                     <td className="px-6 py-4">
                       <StatusBadge status={appointment.status} />
                     </td>
@@ -100,7 +106,7 @@ export default function Appointments() {
               })}
               {appointments.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
+                  <td colSpan={7} className="px-6 py-8 text-center text-muted-foreground">
                     No appointments found.
                   </td>
                 </tr>
@@ -136,6 +142,12 @@ export default function Appointments() {
                     <span className="text-foreground">{doctor?.department || '-'}</span>
                   </div>
                 </div>
+                {(appointment.remarks || appointment.prescription) && (
+                  <div className="mt-2 text-xs border-t border-border/50 pt-2">
+                    {appointment.remarks && <p className="text-foreground/80"><span className="text-muted-foreground">Notes:</span> {appointment.remarks}</p>}
+                    {appointment.prescription && <p className="text-primary mt-1"><span className="text-muted-foreground">Rx:</span> {appointment.prescription}</p>}
+                  </div>
+                )}
               </div>
             );
           })}

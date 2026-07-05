@@ -160,7 +160,52 @@ export default function PatientDashboard() {
         <div className="p-6 border-b border-border/50">
           <h3 className="text-lg font-bold text-foreground">Appointment History</h3>
         </div>
-        <div className="overflow-x-auto">
+        {/* Mobile View */}
+        <div className="md:hidden flex flex-col gap-4 p-4">
+          {patientAppointments.length > 0 ? (
+            patientAppointments.map((appointment) => {
+              const doctor = getDoctor(appointment.doctorId);
+              return (
+                <div key={appointment.id} className="bg-card/50 border border-border p-4 rounded-xl flex flex-col gap-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-bold text-foreground text-base">Dr. {doctor?.name || '-'}</h4>
+                      <p className="text-xs text-muted-foreground font-mono">{appointment.date} @ {appointment.time}</p>
+                    </div>
+                    <StatusBadge status={appointment.status} />
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="px-2 py-1 rounded-md bg-muted font-medium text-foreground">
+                      {doctor?.department || '-'}
+                    </span>
+                    <span className={`px-2 py-1 rounded-md font-bold uppercase tracking-wider ${
+                      appointment.type === 'Emergency' ? 'bg-red-500/20 text-red-500' : 'bg-primary/20 text-primary'
+                    }`}>
+                      {appointment.type}
+                    </span>
+                  </div>
+                  {(appointment.remarks || appointment.prescription) && (
+                    <div className="pt-2 border-t border-border space-y-1 text-sm">
+                      {appointment.remarks && (
+                        <p className="text-foreground/80"><span className="font-semibold text-muted-foreground">Notes:</span> {appointment.remarks}</p>
+                      )}
+                      {appointment.prescription && (
+                        <p className="text-primary"><span className="font-semibold text-muted-foreground">Rx:</span> {appointment.prescription}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <div className="py-8 text-center text-muted-foreground bg-card/30 rounded-xl border border-border/50 border-dashed">
+              No past appointments found.
+            </div>
+          )}
+        </div>
+
+        {/* Desktop View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="text-[10px] uppercase tracking-widest text-muted-foreground bg-background/50">
               <tr>
@@ -168,6 +213,7 @@ export default function PatientDashboard() {
                 <th className="px-6 py-4 font-bold">DOCTOR</th>
                 <th className="px-6 py-4 font-bold">DEPARTMENT</th>
                 <th className="px-6 py-4 font-bold">TYPE</th>
+                <th className="px-6 py-4 font-bold">DETAILS</th>
                 <th className="px-6 py-4 font-bold">STATUS</th>
               </tr>
             </thead>
@@ -178,11 +224,23 @@ export default function PatientDashboard() {
                   return (
                     <tr key={appointment.id} className="hover:bg-muted transition-colors group">
                       <td className="px-6 py-4 font-mono text-foreground text-xs">
-                        {appointment.date} <span className="text-muted-foreground mx-1">•</span> {appointment.time}
+                        {appointment.date}<br/>
+                        <span className="text-muted-foreground">{appointment.time}</span>
                       </td>
-                      <td className="px-6 py-4 font-medium text-foreground">{doctor?.name || '-'}</td>
+                      <td className="px-6 py-4 font-medium text-foreground">Dr. {doctor?.name || '-'}</td>
                       <td className="px-6 py-4 text-muted-foreground">{doctor?.department || '-'}</td>
-                      <td className="px-6 py-4 text-muted-foreground">{appointment.type}</td>
+                      <td className="px-6 py-4">
+                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                          appointment.type === 'Emergency' ? 'bg-red-500/20 text-red-500' : 'bg-primary/20 text-primary'
+                        }`}>
+                          {appointment.type}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-xs">
+                        {appointment.remarks && <p className="text-foreground/80 truncate max-w-[150px]"><span className="text-muted-foreground">Notes:</span> {appointment.remarks}</p>}
+                        {appointment.prescription && <p className="text-primary truncate max-w-[150px]"><span className="text-muted-foreground">Rx:</span> {appointment.prescription}</p>}
+                        {!appointment.remarks && !appointment.prescription && <span className="text-muted-foreground">-</span>}
+                      </td>
                       <td className="px-6 py-4">
                         <StatusBadge status={appointment.status} />
                       </td>
@@ -191,7 +249,7 @@ export default function PatientDashboard() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
+                  <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
                     No past appointments found.
                   </td>
                 </tr>

@@ -12,7 +12,7 @@ export const briefingService = {
     const discharges = patients.filter(p => p.status === 'Discharged').length;
 
     // 2. Critical Patients
-    const criticalPatients = patients.filter(p => p.status === 'Emergency' || p.status === 'ICU').length;
+    const criticalPatients = patients.filter(p => p.status === 'Emergency').length;
 
     // 3. Revenue
     const revenue = invoices.reduce((sum, inv) => sum + Number(inv.amount), 0);

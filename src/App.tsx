@@ -1,7 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuthStore } from "./store/useAuthStore";
+import { useHospitalStore } from "./store/useHospitalStore";
+import type { Notification as HospitalNotification } from "./types/hospital";
 import { RequireAuth } from "./components/auth/RequireAuth";
 import AppLayout from "./layouts/AppLayout";
 import LoginPage from "./pages/auth/LoginPage";
@@ -39,6 +41,54 @@ function AppRoutes() {
   const { isAuthenticated, user } = useAuthStore();
   const { theme, fontSize } = useSettingsStore();
 
+  // Watch for new notifications to trigger Desktop/Mobile push
+  const notifications = useHospitalStore((state: any) => state.notifications);
+  const [seenNotificationIds, setSeenNotificationIds] = useState<Set<string>>(new Set());
+  const isInitialLoad = React.useRef(true);
+
+  useEffect(() => {
+    if (user && notifications.length > 0) {
+      setSeenNotificationIds(prevSeen => {
+        const newSeen = new Set(prevSeen);
+        let hasNew = false;
+        
+        const newNotifs = notifications.filter((n: HospitalNotification) => n.userId === user.id && !n.isRead && !prevSeen.has(n.id));
+        
+        if (!isInitialLoad.current && newNotifs.length > 0) {
+          // Only trigger if not initial load (prevents spam of old unread notifications)
+          newNotifs.forEach((notif: HospitalNotification) => {
+            if ('Notification' in window) {
+              if (Notification.permission === 'granted') {
+                new Notification(notif.title, { body: notif.message, icon: '/favicon.ico' });
+              } else if (Notification.permission !== 'denied') {
+                Notification.requestPermission().then(permission => {
+                  if (permission === 'granted') {
+                    new Notification(notif.title, { body: notif.message, icon: '/favicon.ico' });
+                  }
+                });
+              }
+            }
+          });
+        }
+
+        // Add all current unread notifications to seen
+        notifications.filter((n: HospitalNotification) => n.userId === user.id && !n.isRead).forEach((n: HospitalNotification) => {
+          if (!newSeen.has(n.id)) {
+            newSeen.add(n.id);
+            hasNew = true;
+          }
+        });
+        
+        return hasNew ? newSeen : prevSeen;
+      });
+      
+      // After first pass, it is no longer the initial load
+      if (isInitialLoad.current) {
+        setTimeout(() => { isInitialLoad.current = false; }, 1000);
+      }
+    }
+  }, [notifications, user]);
+
   useEffect(() => {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -55,14 +105,33 @@ function AppRoutes() {
     }
   }, [theme, fontSize]);
 
-  // Load data from Supabase on mount
+  // Load data from Supabase on mount and listen for real-time changes
   useEffect(() => {
     import('./store/useHospitalStore').then(({ useHospitalStore }) => {
       useHospitalStore.getState().initializeData();
+      
+      // Real-time sync across different windows/devices
+      import('./lib/supabase').then(({ supabase }) => {
+        supabase.channel('public:appointments')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
+            useHospitalStore.getState().initializeData(); // Refresh data when appointments change
+          })
+          .subscribe();
+      });
+      
+      // Fallback Polling: Since Supabase Realtime might not be enabled for all tables in user's DB,
+      // refresh every 5 seconds to ensure data stays perfectly in sync across users.
+      const intervalId = setInterval(() => {
+        useHospitalStore.getState().initializeData();
+      }, 5000);
+      
+      return () => clearInterval(intervalId);
     });
+    
     import('./store/useAuthStore').then(({ useAuthStore }) => {
       useAuthStore.getState().initializeUsers();
     });
+    
     import('./store/useEnterpriseStore').then(({ useEnterpriseStore }) => {
       useEnterpriseStore.getState().initializeEnterpriseData();
     });
