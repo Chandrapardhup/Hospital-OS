@@ -23,7 +23,8 @@ import {
   Menu,
   X,
   Send,
-  Loader2
+  Loader2,
+  Video
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuthStore } from "../store/useAuthStore";
@@ -54,10 +55,11 @@ const navItems: NavItem[] = [
   { icon: Users, label: "Patients", path: "/patients", roles: ['admin', 'doctor', 'receptionist', 'nurse'] },
   { icon: Stethoscope, label: "Doctors", path: "/doctors", roles: ['admin', 'receptionist'] },
   { icon: Calendar, label: "Appointments", path: "/appointments", roles: ['admin', 'doctor', 'user', 'receptionist'] },
-  { icon: AlertTriangle, label: "Emergency", path: "/emergency", badge: 17, roles: ['admin', 'receptionist', 'nurse'] },
-  { icon: FileTextIcon, label: "Medical Records", path: "/medical-records", roles: ['admin', 'doctor', 'user', 'nurse'] },
-  { icon: TestTube, label: "Laboratory", path: "/laboratory", badge: 38, roles: ['admin', 'doctor', 'nurse', 'laboratory'] },
-  { icon: Pill, label: "Pharmacy", path: "/pharmacy", badge: 24, roles: ['admin', 'doctor', 'nurse', 'pharmacy'] },
+  { icon: AlertTriangle, label: "Emergency", path: "/emergency", roles: ['admin', 'doctor', 'receptionist', 'nurse'] },
+  { icon: FileTextIcon, label: "Medical Records", path: "/medical-records", roles: ['admin', 'user', 'nurse'] },
+  { icon: Video, label: "AI Live Consult", path: "/ai-consult", roles: ['user'] },
+  { icon: TestTube, label: "Laboratory", path: "/laboratory", roles: ['admin', 'doctor', 'nurse', 'laboratory'] },
+  { icon: Pill, label: "Pharmacy", path: "/pharmacy", roles: ['admin', 'doctor', 'nurse', 'pharmacy'] },
   { icon: CreditCard, label: "Billing", path: "/billing", roles: ['admin', 'receptionist', 'user'] },
   { icon: Box, label: "Inventory", path: "/inventory", roles: ['admin', 'pharmacy', 'nurse'] },
   { icon: BarChart3, label: "analytics", path: "/analytics", roles: ['admin'] },
@@ -451,7 +453,12 @@ function FloatingAIWidget() {
     setMessages(prev => [...prev, { role: 'user', content: userQ }]);
     setIsLoading(true);
     
-    const response = await AIService.getAIResponse(userQ, "You are the global HospitalOS Assistant. Help the user navigate or understand features.");
+    const systemPrompt = `You are the HospitalOS App Assistant.
+CRITICAL RULE: You are ONLY allowed to answer questions about how to use this app, navigate the interface, or view billing/records.
+IF THE USER ASKS ANY MEDICAL, HEALTH, OR SYMPTOM-RELATED QUESTION:
+You MUST refuse to answer and reply EXACTLY with: "I am only an app assistant. For health advice and prescriptions, please go to the Patient Dashboard and use the **AI Video Consultation** ($10 fee) to speak with our AI Doctor."`;
+
+    const response = await AIService.getAIResponse(systemPrompt, userQ);
     
     setMessages(prev => [...prev, { role: 'ai', content: response }]);
     setIsLoading(false);

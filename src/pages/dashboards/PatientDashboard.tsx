@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Activity, Pill, FileText, CalendarPlus, Clock } from 'lucide-react';
+import { Calendar, Activity, Pill, FileText, CalendarPlus, Clock, Video } from 'lucide-react';
 import { useHospitalStore } from '../../store/useHospitalStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { BookAppointmentModal } from '../../components/appointments/BookAppointmentModal';
@@ -60,51 +60,55 @@ export default function PatientDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
         {/* Next Appointment Card */}
-        <div className="col-span-2 bg-card/30 border border-border rounded-2xl p-6 backdrop-blur-md relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <h3 className="text-lg font-bold text-foreground">Next Appointment</h3>
-              <p className="text-sm text-muted-foreground">Your upcoming scheduled visit</p>
+        <div className="col-span-2 space-y-6">
+          <div className="bg-card/30 border border-border rounded-2xl p-6 backdrop-blur-md relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h3 className="text-lg font-bold text-foreground">Next Appointment</h3>
+                <p className="text-sm text-muted-foreground">Your upcoming scheduled visit</p>
+              </div>
+              <div className="p-3 rounded-full bg-primary/20 text-primary">
+                <Calendar className="w-6 h-6" />
+              </div>
             </div>
-            <div className="p-3 rounded-full bg-primary/20 text-primary">
-              <Calendar className="w-6 h-6" />
-            </div>
-          </div>
 
-          {nextAppointment ? (
-            <div className="bg-background/50 rounded-xl p-5 border border-border/50">
-              <div className="flex items-center justify-between border-b border-border/50 pb-4 mb-4">
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{nextAppointment.date}</p>
-                  <p className="text-muted-foreground flex items-center gap-2 mt-1">
-                    <Clock className="w-4 h-4" /> {nextAppointment.time}
-                  </p>
+            {nextAppointment ? (
+              <div className="bg-background/50 rounded-xl p-5 border border-border/50">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border/50 pb-4 mb-4 gap-4">
+                  <div>
+                    <p className="text-2xl font-bold text-foreground">{nextAppointment.date}</p>
+                    <p className="text-muted-foreground flex items-center gap-2 mt-1">
+                      <Clock className="w-4 h-4" /> {nextAppointment.time}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <StatusBadge status={nextAppointment.status} />
+                  </div>
                 </div>
-                <StatusBadge status={nextAppointment.status} />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-foreground">{getDoctor(nextAppointment.doctorId)?.name}</p>
+                    <p className="text-sm text-muted-foreground">{getDoctor(nextAppointment.doctorId)?.department}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-foreground">{nextAppointment.type}</p>
+                    <p className="text-xs text-muted-foreground">Type</p>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-foreground">{getDoctor(nextAppointment.doctorId)?.name}</p>
-                  <p className="text-sm text-muted-foreground">{getDoctor(nextAppointment.doctorId)?.department}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-foreground">{nextAppointment.type}</p>
-                  <p className="text-xs text-muted-foreground">Type</p>
-                </div>
+            ) : (
+              <div className="bg-background/50 rounded-xl p-8 border border-border/50 text-center">
+                <p className="text-muted-foreground">You have no upcoming appointments.</p>
+                <button 
+                  onClick={() => setIsBookModalOpen(true)}
+                  className="mt-4 text-primary hover:text-primary/80 font-medium text-sm transition-colors"
+                >
+                  Schedule one now &rarr;
+                </button>
               </div>
-            </div>
-          ) : (
-            <div className="bg-background/50 rounded-xl p-8 border border-border/50 text-center">
-              <p className="text-muted-foreground">You have no upcoming appointments.</p>
-              <button 
-                onClick={() => setIsBookModalOpen(true)}
-                className="mt-4 text-primary hover:text-primary/80 font-medium text-sm transition-colors"
-              >
-                Schedule one now &rarr;
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Quick Vitals / Status */}

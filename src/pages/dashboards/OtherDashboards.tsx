@@ -115,13 +115,13 @@ export function LabDashboard() {
   const patients = useHospitalStore(state => state.patients);
   const [completedTests, setCompletedTests] = useState<string[]>([]);
 
-  // Generate dynamic lab tests from appointments
+  // Generate dynamic lab tests from appointments with actual lab requests
   const pendingTests = appointments
-    .filter(a => a.status === 'Completed' && !completedTests.includes(a.id))
+    .filter(a => a.status === 'Completed' && a.labRequest && !completedTests.includes(a.id))
     .map(a => ({
       id: a.id,
       patientName: patients.find(p => p.id === a.patientId)?.name || 'Unknown Patient',
-      testType: a.type === 'Emergency' ? 'Comprehensive Metabolic Panel' : 'Complete Blood Count',
+      testType: a.labRequest,
       date: new Date(a.date).toLocaleDateString()
     }));
 
@@ -185,20 +185,20 @@ export function PharmacyDashboard() {
   const appointments = useHospitalStore(state => state.appointments);
   const patients = useHospitalStore(state => state.patients);
 
-  // Generate dynamic prescriptions from completed appointments
+  // Generate dynamic prescriptions from completed appointments with actual prescriptions
   const activePrescriptions = appointments
-    .filter(a => a.status === 'Completed' && !dispensed.includes(a.id))
+    .filter(a => a.status === 'Completed' && a.prescription && !dispensed.includes(a.id))
     .map(a => ({
       id: a.id,
       patientName: patients.find(p => p.id === a.patientId)?.name || 'Unknown Patient',
-      medication: a.type === 'Emergency' ? 'Amoxicillin 500mg' : 'Ibuprofen 400mg',
-      instructions: 'Take 1 tablet every 8 hours'
+      medication: a.prescription,
+      instructions: 'As prescribed by doctor'
     }));
 
   const handleAskAI = async () => {
     if (!query) return;
     setIsLoading(true);
-    const res = await AIService.getAIResponse(query, "You are an AI Pharmacist Assistant. Help answer questions about drug interactions, dosages, and side effects. Provide authoritative data.");
+    const res = await AIService.getAIResponse(query, "You are a Pharmacy AI Assistant for a hospital. Give SHORT, CONCISE answers (2-4 sentences max). Focus strictly on: medicine names, dosages, drug interactions, side effects, prescription guidance, and medication scheduling. Do not give long paragraphs. Be direct and clinical. If asked about non-medicine topics, politely redirect to pharmacy-related queries only.");
     setResponse(res);
     setIsLoading(false);
   };

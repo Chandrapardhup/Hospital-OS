@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, Clock, CalendarCheck, Activity, Search, Calendar, Edit } from 'lucide-react';
+import { Users, Clock, CalendarCheck, Activity, Search, Calendar, Edit, Eye, FileText } from 'lucide-react';
 import { useHospitalStore } from '../../store/useHospitalStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import type { AppointmentStatus } from '../../types/hospital';
@@ -32,6 +32,7 @@ export default function DoctorDashboard() {
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [dismissedEmergencies, setDismissedEmergencies] = useState<string[]>([]);
+  const [viewingPatientId, setViewingPatientId] = useState<string | null>(null);
   
   const filteredAppointments = myAppointments.filter(a => 
     getPatientName(a.patientId).toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -124,7 +125,6 @@ export default function DoctorDashboard() {
               className="w-full bg-background/50 border border-border rounded-full py-2 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
             />
           </div>
-          <AIPrescriptionModal />
         </div>
         {/* Mobile View */}
         <div className="md:hidden flex flex-col gap-4 p-4">
@@ -151,6 +151,12 @@ export default function DoctorDashboard() {
                   </p>
                 )}
                 <div className="pt-2 border-t border-border flex justify-end gap-2">
+                  <button 
+                    onClick={() => setViewingPatientId(appointment.patientId)}
+                    className="flex-1 text-primary hover:bg-primary/20 font-medium text-xs transition-colors px-3 py-2 rounded-lg bg-primary/10 flex items-center justify-center gap-2"
+                  >
+                    <Eye className="w-3.5 h-3.5" /> View Patient
+                  </button>
                   <button 
                     onClick={() => setEditingAppointment(appointment)}
                     className="flex-1 text-amber-500 hover:bg-amber-500/20 font-medium text-xs transition-colors px-3 py-2 rounded-lg bg-amber-500/10 flex items-center justify-center gap-2"
@@ -206,6 +212,12 @@ export default function DoctorDashboard() {
                     </td>
                     <td className="px-6 py-4 text-right flex justify-end gap-2">
                       <button 
+                        onClick={() => setViewingPatientId(appointment.patientId)}
+                        className="text-primary hover:text-primary/80 font-medium text-xs transition-colors px-3 py-1.5 rounded-lg bg-primary/10 flex items-center gap-1"
+                      >
+                        <Eye className="w-3 h-3" /> View Patient
+                      </button>
+                      <button 
                         onClick={() => setEditingAppointment(appointment)}
                         className="text-amber-500 hover:text-amber-600 font-medium text-xs transition-colors px-3 py-1.5 rounded-lg bg-amber-500/10 flex items-center gap-1"
                       >
@@ -236,106 +248,17 @@ export default function DoctorDashboard() {
         onOpenChange={(open) => !open && setEditingAppointment(null)}
         appointment={editingAppointment}
       />
+      <ViewPatientModal 
+        patientId={viewingPatientId}
+        open={viewingPatientId !== null}
+        onOpenChange={(open) => !open && setViewingPatientId(null)}
+      />
     </div>
   );
 }
 
 import * as Dialog from '@radix-ui/react-dialog';
-import { X, Send, Loader2, Sparkles } from 'lucide-react';
-import { AIService } from '../../services/AIService';
-
-function AIPrescriptionModal() {
-  const [open, setOpen] = useState(false);
-  const [symptoms, setSymptoms] = useState('');
-  const [diagnosis, setDiagnosis] = useState('');
-  const [proposedMeds, setProposedMeds] = useState('');
-  const [response, setResponse] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleGenerate = async () => {
-    if (!symptoms || !diagnosis || !proposedMeds) return;
-    setIsLoading(true);
-    // Mock allergies array for Pharmacy Agent check
-    const mockAllergies = ["Penicillin", "Peanuts"];
-    const res = await AIService.checkPrescriptionSafety(symptoms, diagnosis, proposedMeds, mockAllergies);
-    setResponse(res);
-    setIsLoading(false);
-  };
-
-  return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger asChild>
-        <button className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all">
-          <Sparkles className="w-4 h-4" /> Smart Prescription
-        </button>
-      </Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-card border border-border shadow-2xl rounded-2xl p-6 z-50">
-          <div className="flex items-center justify-between mb-4">
-            <Dialog.Title className="text-xl font-bold text-foreground flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary" /> Pharmacy Agent Verification
-            </Dialog.Title>
-            <Dialog.Close className="text-muted-foreground hover:text-foreground">
-              <X className="w-5 h-5" />
-            </Dialog.Close>
-          </div>
-          
-          <div className="space-y-4">
-            <div className="bg-red-500/10 border border-red-500/20 p-3 rounded-lg text-sm text-red-500 font-medium">
-              ⚠️ Patient Known Allergies: Penicillin, Peanuts
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 block">Symptoms</label>
-                <input 
-                  value={symptoms}
-                  onChange={e => setSymptoms(e.target.value)}
-                  placeholder="e.g. Cough, Fever"
-                  className="w-full bg-background border border-border rounded-xl px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 block">Diagnosis</label>
-                <input 
-                  value={diagnosis}
-                  onChange={e => setDiagnosis(e.target.value)}
-                  placeholder="e.g. Viral URI"
-                  className="w-full bg-background border border-border rounded-xl px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 block">Proposed Medications</label>
-              <input 
-                value={proposedMeds}
-                onChange={e => setProposedMeds(e.target.value)}
-                placeholder="e.g. Amoxicillin 500mg, Paracetamol"
-                className="w-full bg-background border border-border rounded-xl px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50"
-              />
-            </div>
-            
-            <button 
-              onClick={handleGenerate}
-              disabled={isLoading || !symptoms || !diagnosis || !proposedMeds}
-              className="w-full flex justify-center items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-xl transition-all disabled:opacity-50"
-            >
-              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />} Verify & Draft Prescription
-            </button>
-            
-            {response && (
-              <div className="mt-4 p-4 bg-background/50 border border-border rounded-xl max-h-48 overflow-y-auto">
-                <p className="text-sm font-medium text-muted-foreground mb-2">Pharmacy Agent Assessment:</p>
-                <div className="text-sm text-foreground whitespace-pre-wrap">{response}</div>
-              </div>
-            )}
-          </div>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
-  );
-}
+import { X } from 'lucide-react';
 
 function StatusBadge({ status }: { status: AppointmentStatus }) {
   let styles = "bg-muted/80 text-muted-foreground border-border";
@@ -353,30 +276,13 @@ function StatusBadge({ status }: { status: AppointmentStatus }) {
   );
 }
 
-function PatientTimelineModal({ patientId, open, onOpenChange }: { patientId: string | null, open: boolean, onOpenChange: (o: boolean) => void }) {
+function ViewPatientModal({ patientId, open, onOpenChange }: { patientId: string | null, open: boolean, onOpenChange: (o: boolean) => void }) {
   const patients = useHospitalStore(state => state.patients);
+  const medicalRecords = useHospitalStore(state => state.medicalRecords);
+  const appointments = useHospitalStore(state => state.appointments);
   const patient = patients.find(p => p.id === patientId);
-  const [summary, setSummary] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-
-  React.useEffect(() => {
-    if (open && patient) {
-      const fetchSummary = async () => {
-        setIsLoading(true);
-        // Mocking a chronological timeline history for the demonstration
-        const history = [
-          { year: '2022', event: 'Diabetes Diagnosed', details: 'HbA1c 7.5%' },
-          { year: '2023', event: 'Medication Started', details: 'Metformin 500mg' },
-          { year: '2024', event: 'Blood Test', details: 'HbA1c 6.8%' },
-          { year: '2025', event: 'Hospital Admission', details: 'Minor Hypoglycemia' }
-        ];
-        const res = await AIService.generatePatientSummary(patient, history);
-        setSummary(res);
-        setIsLoading(false);
-      };
-      fetchSummary();
-    }
-  }, [open, patient]);
+  const patientRecords = medicalRecords.filter(r => r.patientId === patientId);
+  const patientAppointments = appointments.filter(a => a.patientId === patientId);
 
   if (!patient) return null;
 
@@ -384,60 +290,96 @@ function PatientTimelineModal({ patientId, open, onOpenChange }: { patientId: st
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl bg-card border border-border shadow-2xl rounded-2xl p-6 z-50 max-h-[90vh] overflow-y-auto">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95vw] max-w-3xl bg-card border border-border shadow-2xl rounded-2xl p-6 z-50 max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between mb-6">
             <Dialog.Title className="text-2xl font-bold text-foreground">
-              {patient.name}'s Medical Timeline
+              {patient.name}
             </Dialog.Title>
             <Dialog.Close className="text-muted-foreground hover:text-foreground">
               <X className="w-5 h-5" />
             </Dialog.Close>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-            <div className="col-span-2 space-y-6">
-              <div className="relative border-l-2 border-primary/20 ml-4 space-y-8">
-                {/* Timeline UI */}
-                {[
-                  { year: '2022', event: 'Diabetes Diagnosed' },
-                  { year: '2023', event: 'Metformin Started' },
-                  { year: '2024', event: 'Blood Test - Improved' },
-                  { year: '2025', event: 'Minor Hypoglycemia Incident' },
-                  { year: 'Current', event: 'Routine Consultation' }
-                ].map((item, i) => (
-                  <div key={i} className="relative pl-6">
-                    <div className="absolute -left-[9px] top-1.5 w-4 h-4 bg-background border-2 border-primary rounded-full"></div>
-                    <h3 className="text-sm font-bold text-primary mb-1">{item.year}</h3>
-                    <p className="text-foreground font-medium">{item.event}</p>
-                  </div>
+          {/* Patient Info Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+            {[
+              { label: 'Patient ID', value: patient.id },
+              { label: 'Gender', value: patient.gender },
+              { label: 'DOB', value: patient.dob },
+              { label: 'Blood Group', value: patient.bloodGroup },
+              { label: 'Phone', value: patient.phone },
+              { label: 'Status', value: patient.status },
+              { label: 'Email', value: patient.email },
+              { label: 'Insurance', value: patient.insuranceProvider || 'N/A' },
+              { label: 'Address', value: patient.address || 'N/A' },
+            ].map((item, i) => (
+              <div key={i} className="bg-background/50 border border-border rounded-xl p-3">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{item.label}</p>
+                <p className="text-sm font-medium text-foreground mt-1 truncate">{item.value}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Allergies */}
+          {patient.allergies && patient.allergies.length > 0 && (
+            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-6">
+              <h3 className="text-sm font-bold text-red-500 mb-2">⚠ Known Allergies</h3>
+              <div className="flex flex-wrap gap-2">
+                {patient.allergies.map((a, i) => (
+                  <span key={i} className="px-3 py-1 bg-red-500/20 text-red-400 text-xs font-bold rounded-full">{a}</span>
                 ))}
               </div>
             </div>
+          )}
 
-            <div className="col-span-1 space-y-4">
-              <div className="bg-primary/10 border border-primary/20 p-4 rounded-xl">
-                <h3 className="text-sm font-bold text-primary mb-2 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" /> AI Assistant Summary
-                </h3>
-                {isLoading ? (
-                  <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                    <Loader2 className="w-4 h-4 animate-spin" /> Analyzing history...
+          {/* Recent Appointments */}
+          <div className="mb-6">
+            <h3 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-primary" /> Appointment History
+            </h3>
+            {patientAppointments.length > 0 ? (
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {patientAppointments.slice(0, 10).map(a => (
+                  <div key={a.id} className="flex items-center justify-between bg-background/50 border border-border rounded-lg px-4 py-2">
+                    <div>
+                      <span className="text-sm font-medium text-foreground">{a.date} @ {a.time}</span>
+                      <span className="ml-3 text-xs text-muted-foreground">{a.type}</span>
+                    </div>
+                    <StatusBadge status={a.status} />
                   </div>
-                ) : (
-                  <div className="text-sm text-foreground space-y-2 whitespace-pre-wrap">
-                    {summary}
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No appointment history.</p>
+            )}
+          </div>
+
+          {/* Medical Records */}
+          <div>
+            <h3 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
+              <FileText className="w-4 h-4 text-primary" /> Medical Records
+            </h3>
+            {patientRecords.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {patientRecords.map((mr, i) => (
+                  <div key={i} className="bg-background/50 border border-border p-4 rounded-xl flex items-start gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg text-primary shrink-0">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <h4 className="font-semibold text-sm text-foreground truncate">{mr.title}</h4>
+                      <p className="text-xs text-muted-foreground mt-1 truncate">{mr.sub}</p>
+                      <a href={mr.fileUrl} target="_blank" rel="noreferrer" className="text-xs font-medium text-primary hover:underline mt-2 inline-block">View Document</a>
+                    </div>
                   </div>
-                )}
+                ))}
               </div>
-              
-              <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl">
-                <h3 className="text-sm font-bold text-red-500 mb-2">Known Allergies</h3>
-                <ul className="list-disc list-inside text-sm text-foreground">
-                  <li>Penicillin</li>
-                  <li>Peanuts</li>
-                </ul>
+            ) : (
+              <div className="text-center py-8 bg-background/30 rounded-xl border border-border/50 border-dashed">
+                <FileText className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No medical records uploaded for this patient yet.</p>
               </div>
-            </div>
+            )}
           </div>
         </Dialog.Content>
       </Dialog.Portal>

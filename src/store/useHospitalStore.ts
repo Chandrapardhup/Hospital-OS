@@ -2,10 +2,12 @@ import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
 import { workflowService } from '../services/workflowService';
 import { emailService } from '../services/emailService';
-import type { HospitalState, Patient, Doctor, Appointment, Notification, Invoice, MedicalRecord } from '../types/hospital';
+import type { HospitalState, Patient, Doctor, Appointment, Notification, Invoice, MedicalRecord, AiConsultation } from '../types/hospital';
 
 // Extended state to include async actions and loading
 interface ExtendedHospitalState extends HospitalState {
+  aiConsultations: AiConsultation[];
+  addAiConsultation: (consultation: AiConsultation) => void;
   isLoading: boolean;
   initializeData: () => Promise<void>;
 }
@@ -18,7 +20,12 @@ export const useHospitalStore = create<ExtendedHospitalState>()(
     notifications: [],
     medicalRecords: [],
     invoices: [],
+    aiConsultations: [],
     isLoading: true,
+
+    addAiConsultation: (consultation) => set((state) => ({ 
+      aiConsultations: [consultation, ...state.aiConsultations] 
+    })),
 
     initializeData: async () => {
       set({ isLoading: true });
@@ -356,6 +363,23 @@ export const useHospitalStore = create<ExtendedHospitalState>()(
         createdAt: new Date().toISOString()
       };
       set((state) => ({ notifications: [newNotif, ...state.notifications] }));
+      
+      // Native Browser Push Notification
+      if ('Notification' in window) {
+        if (Notification.permission === 'granted') {
+          new Notification(newNotif.title, {
+            body: newNotif.message,
+            icon: '/vite.svg', // Assuming standard vite icon is available
+          });
+        } else if (Notification.permission !== 'denied') {
+          Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+              new Notification(newNotif.title, { body: newNotif.message });
+            }
+          });
+        }
+      }
+
       const { error } = await supabase.from('notifications').insert({
         id: newNotif.id,
         user_id: newNotif.userId,

@@ -20,19 +20,38 @@ export function UploadDocumentModal({ open, onOpenChange }: UploadDocumentModalP
   const [isSuccess, setIsSuccess] = useState(false);
 
   const addMedicalRecord = useHospitalStore(state => state.addMedicalRecord);
+  const patients = useHospitalStore(state => state.patients);
   const user = useAuthStore(state => state.user);
+  
+  const [error, setError] = useState<string | null>(null);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setError(null);
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
+      const fileName = file.name.toLowerCase();
+      const fileType = file.type.toLowerCase();
+      
+      // Heuristic Document Validation (Zero-API RAG proxy)
+      const validKeywords = ['report', 'scan', 'mri', 'blood', 'lab', 'clinic', 'hospital', 'discharge', 'xray', 'rx', 'prescription', 'test', 'result', 'medical', 'health', 'insurance'];
+      const isValid = validKeywords.some(kw => fileName.includes(kw)) || fileType === 'application/dicom';
+      
+      if (!isValid) {
+        setError("Invalid document. Please upload only health-related records (e.g., blood_test.pdf, mri_scan.jpg).");
+        return;
+      }
+
       setIsUploading(true);
       setTimeout(() => {
         setIsUploading(false);
         setIsSuccess(true);
         
+        // Derive correct Patient ID by matching email
+        const currentPatientId = patients.find(p => p.email === user?.email)?.id || user?.id || 'pat_unknown';
+        
         // Add to global store
         addMedicalRecord({
-          patientId: user?.id || 'pat_unknown',
+          patientId: currentPatientId,
           title: file.name,
           sub: `MR-UPLOAD · Self-Uploaded`,
           fileUrl: URL.createObjectURL(file) // Create a local blob URL for preview
@@ -57,6 +76,12 @@ export function UploadDocumentModal({ open, onOpenChange }: UploadDocumentModalP
         </DialogHeader>
 
         <div className="mt-4">
+          {error && (
+            <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-2 text-destructive text-sm">
+              <X className="w-4 h-4 mt-0.5 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
           {isSuccess ? (
             <div className="flex flex-col items-center justify-center p-8 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
               <CheckCircle2 className="w-12 h-12 text-emerald-500 mb-4" />

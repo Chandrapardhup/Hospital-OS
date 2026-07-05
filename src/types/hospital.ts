@@ -41,12 +41,13 @@ export interface Appointment {
   doctorId: string;
   date: string;
   time: string;
-  type: 'Consultation' | 'Follow-up' | 'Checkup' | 'Emergency';
+  type: 'Consultation' | 'Follow-up' | 'Checkup' | 'Emergency' | 'Admitting';
   status: AppointmentStatus;
   symptoms?: string;
   notes?: string;
   remarks?: string;
   prescription?: string;
+  labRequest?: string;
 }
 
 export interface Notification {
@@ -76,6 +77,16 @@ export interface Invoice {
   status: 'Paid' | 'Pending' | 'Overdue';
   date: string;
   items: { description: string; cost: number }[];
+}
+
+export interface AiConsultation {
+  id: string;
+  patientId: string;
+  invoiceId?: string;
+  date: string;
+  language: string;
+  transcript: { speaker: 'User' | 'AI'; text: string; time: string }[];
+  duration: number; // in seconds
 }
 
 // ==========================================

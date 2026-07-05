@@ -22,7 +22,7 @@ const appointmentSchema = z.object({
   doctorId: z.string().min(1, 'Please select a doctor'),
   date: z.string().min(1, 'Date is required'),
   time: z.string().min(1, 'Time is required'),
-  type: z.enum(['Consultation', 'Follow-up', 'Checkup', 'Emergency'] as const),
+  type: z.enum(['Consultation', 'Follow-up', 'Checkup', 'Emergency', 'Admitting'] as const),
   symptoms: z.string().optional(),
 });
 
@@ -84,7 +84,7 @@ export function BookAppointmentModal({ open, onOpenChange, defaultPatientId, isP
             gender: 'Other',
             bloodGroup: 'Unknown',
             address: 'N/A',
-            status: 'Outpatient',
+            status: data.type === 'Emergency' ? 'Emergency' : data.type === 'Admitting' ? 'Admitted' : 'Outpatient',
             createdAt: new Date().toISOString()
           });
         }
@@ -105,6 +105,15 @@ export function BookAppointmentModal({ open, onOpenChange, defaultPatientId, isP
       };
       
       await AppointmentService.bookAppointment(appointmentData);
+      
+      // Update patient status based on appointment type so KPI stats refresh instantly
+      const updatePatient = useHospitalStore.getState().updatePatient;
+      if (data.type === 'Emergency') {
+        updatePatient(finalPatientId, { status: 'Emergency' });
+      } else if (data.type === 'Admitting') {
+        updatePatient(finalPatientId, { status: 'Admitted' });
+      }
+      
       reset();
       onOpenChange(false);
     } catch (error) {
@@ -151,6 +160,12 @@ export function BookAppointmentModal({ open, onOpenChange, defaultPatientId, isP
                 </SelectContent>
               </Select>
               {errors.doctorId && <p className="text-xs text-destructive">{errors.doctorId.message}</p>}
+              {selectedDoctor && selectedDoctor.consultationFee && (
+                <div className="mt-2 p-2 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-between">
+                  <span className="text-xs font-medium text-foreground">Consultation Fee</span>
+                  <span className="text-sm font-bold text-primary">${selectedDoctor.consultationFee}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -203,6 +218,7 @@ export function BookAppointmentModal({ open, onOpenChange, defaultPatientId, isP
                 <SelectItem value="Consultation">Consultation</SelectItem>
                 <SelectItem value="Follow-up">Follow-up</SelectItem>
                 <SelectItem value="Checkup">Checkup</SelectItem>
+                <SelectItem value="Admitting">Admitting (Hospital Stay)</SelectItem>
                 <SelectItem value="Emergency">Emergency</SelectItem>
               </SelectContent>
             </Select>

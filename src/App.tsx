@@ -26,6 +26,7 @@ import EmergencyTriage from "./pages/EmergencyTriage";
 import Billing from "./pages/Billing";
 import Analytics from "./pages/Analytics";
 import NotificationsHub from "./pages/NotificationsHub";
+import AILiveCallPage from "./pages/dashboards/AILiveCallPage";
 
 import { useSettingsStore } from "./store/useSettingsStore";
 
@@ -170,15 +171,16 @@ function AppRoutes() {
         {/* Role Dashboards */}
         <Route path="doctor" element={<RequireAuth allowedRoles={['admin', 'doctor']}><DoctorDashboard /></RequireAuth>} />
         <Route path="user" element={<RequireAuth allowedRoles={['admin', 'user']}><PatientDashboard /></RequireAuth>} />
+        <Route path="ai-consult" element={<RequireAuth allowedRoles={['admin', 'user']}><AILiveCallPage /></RequireAuth>} />
         <Route path="receptionist" element={<RequireAuth allowedRoles={['admin', 'receptionist']}><ReceptionDashboard /></RequireAuth>} />
         <Route path="nurse" element={<RequireAuth allowedRoles={['admin', 'nurse']}><NurseDashboard /></RequireAuth>} />
-        <Route path="laboratory" element={<RequireAuth allowedRoles={['admin', 'laboratory']}><LabDashboard /></RequireAuth>} />
-        <Route path="pharmacy" element={<RequireAuth allowedRoles={['admin', 'pharmacy']}><PharmacyDashboard /></RequireAuth>} />
+        <Route path="laboratory" element={<RequireAuth allowedRoles={['admin', 'laboratory', 'doctor', 'nurse']}><LabDashboard /></RequireAuth>} />
+        <Route path="pharmacy" element={<RequireAuth allowedRoles={['admin', 'pharmacy', 'doctor', 'nurse']}><PharmacyDashboard /></RequireAuth>} />
 
         {/* Additional routes */}
         <Route path="settings" element={<RequireAuth><Settings /></RequireAuth>} />
         <Route path="onboarding" element={<RequireAuth allowedRoles={['user']}><OnboardingFlow /></RequireAuth>} />
-        <Route path="emergency" element={<RequireAuth allowedRoles={['admin', 'receptionist', 'nurse']}><EmergencyTriage /></RequireAuth>} />
+        <Route path="emergency" element={<RequireAuth allowedRoles={['admin', 'doctor', 'receptionist', 'nurse']}><EmergencyTriage /></RequireAuth>} />
         <Route path="billing" element={<RequireAuth allowedRoles={['admin', 'receptionist', 'user']}><Billing /></RequireAuth>} />
         <Route path="inventory" element={<RequireAuth allowedRoles={['admin', 'pharmacy', 'nurse']}><Inventory /></RequireAuth>} />
         <Route path="analytics" element={<RequireAuth allowedRoles={['admin']}><Analytics /></RequireAuth>} />

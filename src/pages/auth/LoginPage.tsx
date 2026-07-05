@@ -673,13 +673,22 @@ export default function LoginPage() {
                   </div>
 
                   {selectedRole === 'doctor' && (
-                    <div className="space-y-1">
+                    <div className="space-y-3">
                       <div className="relative">
                         <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input 
                           {...regReg('department')}
                           type="text" 
                           placeholder="Department (e.g. Cardiology)" 
+                          className="pl-10 bg-background/50 border-border focus-visible:border-primary/50 text-foreground h-12"
+                        />
+                      </div>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">$</span>
+                        <Input 
+                          {...regReg('consultationFee', { valueAsNumber: true })}
+                          type="number" 
+                          placeholder="Consultation Fee (e.g. 50)" 
                           className="pl-10 bg-background/50 border-border focus-visible:border-primary/50 text-foreground h-12"
                         />
                       </div>
@@ -799,18 +808,11 @@ export default function LoginPage() {
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-3 pt-2">
                       <div className="space-y-1">
                         <label className="text-xs text-muted-foreground ml-1 uppercase tracking-wider">Department</label>
-                        <Select onValueChange={(val) => setValue('department', val)}>
-                          <SelectTrigger className="bg-background/50 h-10 border-border focus:ring-primary/20">
-                            <SelectValue placeholder="Select department" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-card border-border">
-                            <SelectItem value="Cardiology">Cardiology</SelectItem>
-                            <SelectItem value="Neurology">Neurology</SelectItem>
-                            <SelectItem value="Pediatrics">Pediatrics</SelectItem>
-                            <SelectItem value="Orthopedics">Orthopedics</SelectItem>
-                            <SelectItem value="General">General Medicine</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Input 
+                          {...regReg('department')}
+                          placeholder="e.g. Cardiology, Radiology, etc."
+                          className="bg-background/50 h-10 border-border focus:ring-primary/20"
+                        />
                       </div>
                       
                       <div className="space-y-1">

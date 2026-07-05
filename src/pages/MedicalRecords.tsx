@@ -4,25 +4,48 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { UploadDocumentModal } from '../components/UploadDocumentModal';
 import { AIService } from '../services/AIService';
 import { useHospitalStore } from '../store/useHospitalStore';
+import { useAuthStore } from '../store/useAuthStore';
 
 export default function MedicalRecords() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [explainingReport, setExplainingReport] = useState<string | null>(null);
   
-  const records = useHospitalStore(state => state.medicalRecords);
+  const allRecords = useHospitalStore(state => state.medicalRecords);
+  const { user } = useAuthStore();
+  const patients = useHospitalStore(state => state.patients);
+  const doctors = useHospitalStore(state => state.doctors);
+  const appointments = useHospitalStore(state => state.appointments);
+  
+  const isPatient = user?.role === 'user';
+  const isDoctor = user?.role === 'doctor';
+  
+  const currentPatientId = patients.find(p => p.email === user?.email)?.id || user?.id || '';
+  const currentDoctorId = doctors.find(d => d.email === user?.email)?.id || user?.id || '';
+  
+  const doctorPatientIds = appointments
+    .filter(a => a.doctorId === currentDoctorId)
+    .map(a => a.patientId);
+  
+  const records = isPatient 
+    ? allRecords.filter(r => r.patientId === currentPatientId)
+    : isDoctor
+      ? allRecords.filter(r => doctorPatientIds.includes(r.patientId))
+      : allRecords;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-20">
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-          <span>Administrator</span>
+          <span>{isPatient ? 'Patient Portal' : 'Administrator'}</span>
           <span className="text-foreground/20">•</span>
-          <span className="text-primary">Command Center</span>
+          <span className="text-primary">{isPatient ? 'My Records' : 'Command Center'}</span>
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-1 gap-3">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">Medical Records</h1>
-            <p className="text-sm text-muted-foreground mt-1">Longitudinal health graph · 128,410 documents indexed</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {isPatient ? 'Your uploaded medical documents and lab results' : 'Longitudinal health graph · 128,410 documents indexed'}
+            </p>
           </div>
           <button 
             onClick={() => setIsUploadModalOpen(true)}

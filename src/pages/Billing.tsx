@@ -3,6 +3,7 @@ import { CreditCard, FileText, CheckCircle2, AlertCircle, Clock, X, Download } f
 import { useHospitalStore } from '../store/useHospitalStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { useTranslation } from '../translations';
+import { InvoiceDetailsModal } from '../components/billing/InvoiceDetailsModal';
 
 export default function Billing() {
   const { t } = useTranslation();
@@ -20,8 +21,12 @@ export default function Billing() {
   const addNotification = useHospitalStore(state => state.addNotification);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newInvoiceAmount, setNewInvoiceAmount] = useState('');
   const [selectedPatientId, setSelectedPatientId] = useState('');
+  const [newInvoiceAmount, setNewInvoiceAmount] = useState('');
+  
+  // Custom Invoice Modal State
+  const [selectedInvoiceForDownload, setSelectedInvoiceForDownload] = useState<any>(null);
+  const aiConsultations = useHospitalStore(state => state.aiConsultations);
 
   const getPatientName = (id: string) => patients.find(p => p.id === id)?.name || id;
 
@@ -36,14 +41,13 @@ export default function Billing() {
     addInvoice({
       id: invoiceId,
       patientId: selectedPatientId,
-      doctorId: 'sys',
+      doctorId: 'dr_unknown',
       amount: Number(newInvoiceAmount),
       status: 'Pending',
       date: new Date().toISOString(),
       items: [{ description: 'Consultation & Services', cost: Number(newInvoiceAmount) }]
     });
     
-    // Add notification for the patient
     addNotification({
       userId: selectedPatientId,
       title: 'New Invoice Generated',
@@ -60,9 +64,11 @@ export default function Billing() {
     updateInvoice(id, { status: 'Paid' });
   };
   
-  const handleDownloadInvoice = (id: string) => {
-    // Simulate downloading an invoice as PDF
-    window.print();
+  const handleDownloadInvoice = (invoiceId: string) => {
+    const invoice = invoices.find(i => i.id === invoiceId);
+    if (invoice) {
+      setSelectedInvoiceForDownload(invoice);
+    }
   };
 
   return (
@@ -148,6 +154,14 @@ export default function Billing() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        {isPatient && invoice.status !== 'Paid' && (
+                          <button 
+                            onClick={() => handleMarkPaid(invoice.id)}
+                            className="text-white hover:text-white/90 font-medium text-xs transition-colors px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 shadow-[0_0_15px_rgba(147,51,234,0.3)]"
+                          >
+                            Pay Now
+                          </button>
+                        )}
                         {(!isPatient && invoice.status === 'Pending') && (
                           <button 
                             onClick={() => handleMarkPaid(invoice.id)}
@@ -158,7 +172,9 @@ export default function Billing() {
                         )}
                         <button 
                           onClick={() => handleDownloadInvoice(invoice.id)}
-                          className="text-primary hover:text-primary/80 font-medium text-xs transition-colors px-3 py-1.5 rounded-lg bg-primary/10 flex items-center gap-1"
+                          disabled={invoice.status !== 'Paid'}
+                          className={`font-medium text-xs transition-colors px-3 py-1.5 rounded-lg flex items-center gap-1 ${invoice.status === 'Paid' ? 'text-primary hover:text-primary/80 bg-primary/10' : 'text-gray-500 bg-gray-500/10 opacity-50 cursor-not-allowed'}`}
+                          title={invoice.status !== 'Paid' ? 'Payment required to download' : ''}
                         >
                           <Download className="w-3 h-3" /> Download
                         </button>
@@ -197,7 +213,15 @@ export default function Billing() {
                   <span className="text-lg font-bold text-foreground">${invoice.amount.toLocaleString()}</span>
                   <span className="text-sm text-muted-foreground">{new Date(invoice.date).toLocaleDateString()}</span>
                 </div>
-                <div className="flex gap-2 w-full">
+                  <div className="flex gap-2 w-full">
+                  {isPatient && invoice.status !== 'Paid' && (
+                    <button 
+                      onClick={() => handleMarkPaid(invoice.id)}
+                      className="text-white hover:text-white/90 font-medium text-sm transition-colors px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 flex-1 min-h-[48px] shadow-[0_0_15px_rgba(147,51,234,0.3)]"
+                    >
+                      Pay Now
+                    </button>
+                  )}
                   {(!isPatient && invoice.status === 'Pending') && (
                     <button 
                       onClick={() => handleMarkPaid(invoice.id)}
@@ -208,7 +232,9 @@ export default function Billing() {
                   )}
                   <button 
                     onClick={() => handleDownloadInvoice(invoice.id)}
-                    className="text-primary hover:text-primary/80 font-medium text-sm transition-colors px-4 py-2.5 rounded-xl bg-primary/10 flex-1 min-h-[48px] flex items-center justify-center gap-2"
+                    disabled={invoice.status !== 'Paid'}
+                    className={`font-medium text-sm transition-colors px-4 py-2.5 rounded-xl flex-1 min-h-[48px] flex items-center justify-center gap-2 ${invoice.status === 'Paid' ? 'text-primary hover:text-primary/80 bg-primary/10' : 'text-gray-500 bg-gray-500/10 opacity-50 cursor-not-allowed'}`}
+                    title={invoice.status !== 'Paid' ? 'Payment required to download' : ''}
                   >
                     <Download className="w-4 h-4" /> Download
                   </button>
@@ -271,6 +297,15 @@ export default function Billing() {
             </div>
           </div>
         </div>
+      )}
+
+      {selectedInvoiceForDownload && (
+        <InvoiceDetailsModal 
+          invoice={selectedInvoiceForDownload}
+          patientName={getPatientName(selectedInvoiceForDownload.patientId)}
+          aiConsultation={aiConsultations.find(c => c.invoiceId === selectedInvoiceForDownload.id)}
+          onClose={() => setSelectedInvoiceForDownload(null)}
+        />
       )}
     </div>
   );

@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { CalendarPlus } from "lucide-react";
+import { CalendarPlus, Edit } from "lucide-react";
 import { useHospitalStore } from "../store/useHospitalStore";
 import type { AppointmentStatus } from "../types/hospital";
 import { BookAppointmentModal } from "../components/appointments/BookAppointmentModal";
+import { EditAppointmentModal } from "../components/appointments/EditAppointmentModal";
 
 export default function Appointments() {
   const appointments = useHospitalStore(state => state.appointments);
@@ -10,6 +11,7 @@ export default function Appointments() {
   const doctors = useHospitalStore(state => state.doctors);
   
   const [isBookModalOpen, setIsBookModalOpen] = useState(false);
+  const [editingAppointment, setEditingAppointment] = useState<any | null>(null);
 
   // Helper functions to get names from IDs
   const getPatientName = (id: string) => patients.find(p => p.id === id)?.name || id;
@@ -81,13 +83,14 @@ export default function Appointments() {
                 <th className="px-6 py-4 font-bold">TYPE</th>
                 <th className="px-6 py-4 font-bold">DETAILS</th>
                 <th className="px-6 py-4 font-bold">STATUS</th>
+                <th className="px-6 py-4 font-bold text-right">ACTION</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {appointments.map((appointment) => {
                 const doctor = getDoctor(appointment.doctorId);
                 return (
-                  <tr key={appointment.id} className="hover:bg-muted transition-colors cursor-pointer group">
+                  <tr key={appointment.id} className="hover:bg-muted transition-colors group">
                     <td className="px-6 py-4 font-mono text-foreground text-xs">{appointment.time}</td>
                     <td className="px-6 py-4 font-medium text-foreground">{getPatientName(appointment.patientId)}</td>
                     <td className="px-6 py-4 text-muted-foreground">{doctor?.name || appointment.doctorId}</td>
@@ -100,6 +103,15 @@ export default function Appointments() {
                     </td>
                     <td className="px-6 py-4">
                       <StatusBadge status={appointment.status} />
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button 
+                        onClick={() => setEditingAppointment(appointment)}
+                        className="p-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg transition-colors inline-flex items-center gap-1 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                        title="Edit Appointment"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
                     </td>
                   </tr>
                 );
@@ -148,6 +160,14 @@ export default function Appointments() {
                     {appointment.prescription && <p className="text-primary mt-1"><span className="text-muted-foreground">Rx:</span> {appointment.prescription}</p>}
                   </div>
                 )}
+                <div className="mt-2 pt-2 border-t border-border/50 flex justify-end">
+                  <button 
+                    onClick={() => setEditingAppointment(appointment)}
+                    className="text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-1.5 rounded-lg flex items-center gap-1 font-medium transition-colors"
+                  >
+                    <Edit className="w-3.5 h-3.5" /> Edit
+                  </button>
+                </div>
               </div>
             );
           })}
@@ -162,6 +182,12 @@ export default function Appointments() {
       <BookAppointmentModal 
         open={isBookModalOpen} 
         onOpenChange={setIsBookModalOpen} 
+      />
+
+      <EditAppointmentModal 
+        open={editingAppointment !== null}
+        onOpenChange={(open) => !open && setEditingAppointment(null)}
+        appointment={editingAppointment}
       />
     </div>
   );
