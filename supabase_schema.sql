@@ -92,6 +92,19 @@ CREATE TABLE invoices (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 8. Inventory Table
+CREATE TABLE inventory (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  category TEXT NOT NULL,
+  quantity INTEGER NOT NULL DEFAULT 0,
+  unit TEXT NOT NULL,
+  min_stock_level INTEGER NOT NULL DEFAULT 10,
+  status TEXT,
+  last_restocked TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Disable Row Level Security (RLS) to allow our frontend to read/write freely
 -- Since we are migrating from a local storage solution without a backend JWT auth system,
 -- this allows our simulated auth to work out-of-the-box with the database.
@@ -102,3 +115,4 @@ ALTER TABLE appointments DISABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications DISABLE ROW LEVEL SECURITY;
 ALTER TABLE medical_records DISABLE ROW LEVEL SECURITY;
 ALTER TABLE invoices DISABLE ROW LEVEL SECURITY;
+ALTER TABLE inventory DISABLE ROW LEVEL SECURITY;

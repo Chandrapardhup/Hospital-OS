@@ -27,6 +27,37 @@ export default function Dashboard() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isAssignDoctorOpen, setIsAssignDoctorOpen] = useState(false);
 
+  const patients = useHospitalStore(state => state.patients);
+  const appointments = useHospitalStore(state => state.appointments);
+
+  const emergencyPatients = patients.filter(p => p.status === 'Emergency');
+  const pendingAppointments = appointments.filter(a => a.status === 'Scheduled');
+  
+  const alerts = [];
+  
+  if (emergencyPatients.length > 0) {
+    alerts.push({
+      type: 'CRITICAL',
+      title: `${emergencyPatients.length} Emergency Patient(s)`,
+      desc: 'Immediate triage and attention required in the emergency ward.',
+      action: 'View Emergencies',
+      onClick: () => navigate('/emergency')
+    });
+  }
+  
+  if (pendingAppointments.length > 5) {
+    alerts.push({
+      type: 'WARNING',
+      title: 'High Waitlist Volume',
+      desc: `${pendingAppointments.length} patients are currently waiting for their scheduled appointments.`,
+      action: 'Manage Queue',
+      onClick: () => navigate('/appointments')
+    });
+  }
+
+  const healthScore = Math.max(0, 100 - (emergencyPatients.length * 5));
+  const opScore = Math.max(0, 100 - (pendingAppointments.length * 2));
+
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-20">
       <div className="flex flex-col gap-1">
@@ -97,43 +128,39 @@ export default function Dashboard() {
                 <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                 AI Command Center · Chief Operating Intelligence
               </div>
-              <h2 className="text-xl font-bold text-foreground">6 operational insights require your attention</h2>
+              <h2 className="text-xl font-bold text-foreground">
+                {alerts.length > 0 ? `${alerts.length} operational insight${alerts.length > 1 ? 's require' : ' requires'} your attention` : 'All operations running optimally'}
+              </h2>
             </div>
           </div>
           <div className="text-xs text-muted-foreground flex items-center gap-2">
-            <Bot className="w-3.5 h-3.5" /> Reasoning across 42 data streams
+            <Bot className="w-3.5 h-3.5" /> Reasoning across live data streams
           </div>
         </div>
 
         {/* Scores Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 relative z-10 mb-8">
-          <ScoreCard title="HOSPITAL HEALTH" score={98} color="text-emerald-400" stroke="stroke-emerald-400" />
-          <ScoreCard title="OPERATIONAL" score={92} color="text-primary" stroke="stroke-primary" />
+          <ScoreCard title="HOSPITAL HEALTH" score={healthScore} color="text-emerald-400" stroke="stroke-emerald-400" />
+          <ScoreCard title="OPERATIONAL" score={opScore} color="text-primary" stroke="stroke-primary" />
           <ScoreCard title="PERFORMANCE" score={87} color="text-blue-400" stroke="stroke-blue-400" />
           <ScoreCard title="SATISFACTION" score={94} color="text-amber-400" stroke="stroke-amber-400" />
         </div>
 
         {/* Alerts Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 relative z-10">
-          <AlertCard 
-            type="CRITICAL" 
-            title="ICU occupancy has reached 92%" 
-            desc="Predicted overflow in 2h. Reroute non-trauma admits to Ward 6."
-            action="Reroute now"
-          />
-          <AlertCard 
-            type="WARNING" 
-            title="Cardiology is overloaded" 
-            desc="Dr. Thorne + Dr. Adeyemi at 140% capacity. Shift 3 patients to Dr. Vale."
-            action="Balance load"
-          />
-          <AlertCard 
-            type="CRITICAL" 
-            title="3 patients require immediate review" 
-            desc="Elena Vance, Marcus Thorne, Priya Rao — vitals trending unstable."
-            action="Open triage"
-          />
-        </div>
+        {alerts.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 relative z-10">
+            {alerts.map((alert, i) => (
+              <AlertCard 
+                key={i}
+                type={alert.type as any} 
+                title={alert.title} 
+                desc={alert.desc}
+                action={alert.action}
+                onClick={alert.onClick}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       <AddPatientDrawer 
@@ -191,7 +218,7 @@ function ScoreCard({ title, score, color, stroke }: { title: string; score: numb
   );
 }
 
-function AlertCard({ type, title, desc, action }: { type: "CRITICAL" | "WARNING" | "INFO"; title: string; desc: string; action: string }) {
+function AlertCard({ type, title, desc, action, onClick }: { type: "CRITICAL" | "WARNING" | "INFO"; title: string; desc: string; action: string; onClick?: () => void }) {
   const isCritical = type === "CRITICAL";
   const colorClass = isCritical ? "text-destructive" : "text-amber-500";
   const bgClass = isCritical ? "bg-destructive/10" : "bg-amber-500/10";
@@ -205,7 +232,10 @@ function AlertCard({ type, title, desc, action }: { type: "CRITICAL" | "WARNING"
       </div>
       <h3 className="text-sm font-bold text-foreground mb-2">{title}</h3>
       <p className="text-xs text-muted-foreground leading-relaxed flex-1">{desc}</p>
-      <button className={`mt-4 text-xs font-medium ${colorClass} hover:text-foreground transition-colors flex items-center gap-1 w-fit`}>
+      <button 
+        onClick={onClick}
+        className={`mt-4 text-xs font-medium ${colorClass} hover:text-foreground transition-colors flex items-center gap-1 w-fit`}
+      >
         {action} &rarr;
       </button>
     </div>

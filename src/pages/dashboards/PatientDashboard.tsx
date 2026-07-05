@@ -151,6 +151,23 @@ export default function PatientDashboard() {
                   </div>
                 </div>
               </div>
+              
+              {/* Quick Link to Billing */}
+              <button 
+                onClick={() => window.location.href = '/billing'}
+                className="w-full flex items-center justify-between p-4 rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors mt-2"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/20 text-primary">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-bold text-foreground">My Bills & Invoices</p>
+                    <p className="text-xs text-muted-foreground">View or download your billing history</p>
+                  </div>
+                </div>
+                <div className="text-primary font-bold">&rarr;</div>
+              </button>
            </div>
         </div>
       </div>

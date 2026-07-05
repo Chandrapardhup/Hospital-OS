@@ -33,7 +33,7 @@ import { useSettingsStore } from "./store/useSettingsStore";
 import HospitalBrainDashboard from './pages/dashboards/admin/HospitalBrainDashboard';
 import WorkflowDashboard from './pages/dashboards/admin/WorkflowDashboard';
 import BriefingDashboard from './pages/dashboards/admin/BriefingDashboard';
-import EmailQueueDashboard from './pages/dashboards/admin/EmailQueueDashboard';
+import Inventory from './pages/Inventory';
 
 const queryClient = new QueryClient();
 
@@ -48,11 +48,13 @@ function AppRoutes() {
 
   useEffect(() => {
     if (user && notifications.length > 0) {
+      const currentPatientId = useHospitalStore.getState().patients.find((p: any) => p.email === user.email)?.id;
+      
       setSeenNotificationIds(prevSeen => {
         const newSeen = new Set(prevSeen);
         let hasNew = false;
         
-        const newNotifs = notifications.filter((n: HospitalNotification) => n.userId === user.id && !n.isRead && !prevSeen.has(n.id));
+        const newNotifs = notifications.filter((n: HospitalNotification) => (n.userId === user.id || n.userId === currentPatientId) && !n.isRead && !prevSeen.has(n.id));
         
         if (!isInitialLoad.current && newNotifs.length > 0) {
           // Only trigger if not initial load (prevents spam of old unread notifications)
@@ -72,7 +74,7 @@ function AppRoutes() {
         }
 
         // Add all current unread notifications to seen
-        notifications.filter((n: HospitalNotification) => n.userId === user.id && !n.isRead).forEach((n: HospitalNotification) => {
+        notifications.filter((n: HospitalNotification) => (n.userId === user.id || n.userId === currentPatientId) && !n.isRead).forEach((n: HospitalNotification) => {
           if (!newSeen.has(n.id)) {
             newSeen.add(n.id);
             hasNew = true;
@@ -160,7 +162,6 @@ function AppRoutes() {
         <Route path="admin/brain" element={<RequireAuth allowedRoles={['admin']}><HospitalBrainDashboard /></RequireAuth>} />
         <Route path="admin/workflows" element={<RequireAuth allowedRoles={['admin']}><WorkflowDashboard /></RequireAuth>} />
         <Route path="admin/briefing" element={<RequireAuth allowedRoles={['admin']}><BriefingDashboard /></RequireAuth>} />
-        <Route path="admin/emails" element={<RequireAuth allowedRoles={['admin']}><EmailQueueDashboard /></RequireAuth>} />
         <Route path="patients" element={<RequireAuth allowedRoles={['admin', 'doctor', 'receptionist', 'nurse']}><Patients /></RequireAuth>} />
         <Route path="doctors" element={<RequireAuth allowedRoles={['admin', 'receptionist']}><Doctors /></RequireAuth>} />
         <Route path="appointments" element={<RequireAuth allowedRoles={['admin', 'doctor', 'receptionist', 'user']}><Appointments /></RequireAuth>} />
@@ -178,8 +179,8 @@ function AppRoutes() {
         <Route path="settings" element={<RequireAuth><Settings /></RequireAuth>} />
         <Route path="onboarding" element={<RequireAuth allowedRoles={['user']}><OnboardingFlow /></RequireAuth>} />
         <Route path="emergency" element={<RequireAuth allowedRoles={['admin', 'receptionist', 'nurse']}><EmergencyTriage /></RequireAuth>} />
-        <Route path="billing" element={<RequireAuth allowedRoles={['admin']}><Billing /></RequireAuth>} />
-        <Route path="inventory" element={<Placeholder title="Inventory" />} />
+        <Route path="billing" element={<RequireAuth allowedRoles={['admin', 'receptionist', 'user']}><Billing /></RequireAuth>} />
+        <Route path="inventory" element={<RequireAuth allowedRoles={['admin', 'pharmacy', 'nurse']}><Inventory /></RequireAuth>} />
         <Route path="analytics" element={<RequireAuth allowedRoles={['admin']}><Analytics /></RequireAuth>} />
         <Route path="notifications" element={<RequireAuth><NotificationsHub /></RequireAuth>} />
         

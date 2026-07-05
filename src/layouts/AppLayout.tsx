@@ -49,7 +49,6 @@ const navItems: NavItem[] = [
   { icon: BrainCircuit, label: "Hospital Brain", path: "/admin/brain", roles: ['admin'] },
   { icon: Network, label: "Workflows", path: "/admin/workflows", roles: ['admin'] },
   { icon: FileTextIcon, label: "Daily Briefing", path: "/admin/briefing", roles: ['admin'] },
-  { icon: Mail, label: "Email Queue", path: "/admin/emails", roles: ['admin'] },
   
   // Core Modules
   { icon: Users, label: "Patients", path: "/patients", roles: ['admin', 'doctor', 'receptionist', 'nurse'] },
@@ -57,10 +56,10 @@ const navItems: NavItem[] = [
   { icon: Calendar, label: "Appointments", path: "/appointments", roles: ['admin', 'doctor', 'user', 'receptionist'] },
   { icon: AlertTriangle, label: "Emergency", path: "/emergency", badge: 17, roles: ['admin', 'receptionist', 'nurse'] },
   { icon: FileTextIcon, label: "Medical Records", path: "/medical-records", roles: ['admin', 'doctor', 'user', 'nurse'] },
-  { icon: TestTube, label: "Laboratory", path: "/laboratory", badge: 38, roles: ['admin', 'laboratory'] },
-  { icon: Pill, label: "Pharmacy", path: "/pharmacy", badge: 24, roles: ['admin', 'pharmacy'] },
-  { icon: CreditCard, label: "Billing", path: "/billing", roles: ['admin', 'user'] },
-  { icon: Box, label: "Inventory", path: "/inventory", roles: ['admin', 'pharmacy'] },
+  { icon: TestTube, label: "Laboratory", path: "/laboratory", badge: 38, roles: ['admin', 'doctor', 'nurse', 'laboratory'] },
+  { icon: Pill, label: "Pharmacy", path: "/pharmacy", badge: 24, roles: ['admin', 'doctor', 'nurse', 'pharmacy'] },
+  { icon: CreditCard, label: "Billing", path: "/billing", roles: ['admin', 'receptionist', 'user'] },
+  { icon: Box, label: "Inventory", path: "/inventory", roles: ['admin', 'pharmacy', 'nurse'] },
   { icon: BarChart3, label: "analytics", path: "/analytics", roles: ['admin'] },
   { icon: SettingsIcon, label: "settings", path: "/settings", roles: ['admin', 'doctor', 'user', 'receptionist', 'nurse', 'laboratory', 'pharmacy'] },
 ];
@@ -70,9 +69,11 @@ export default function AppLayout() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
   const notifications = useHospitalStore(state => state.notifications);
+  const patients = useHospitalStore(state => state.patients);
   const { t } = useTranslation();
   
-  const unreadCount = notifications.filter(n => !n.isRead && (n.userId === user?.id || n.userId === 'global')).length;
+  const currentPatientId = patients.find(p => p.email === user?.email)?.id;
+  const unreadCount = notifications.filter(n => !n.isRead && (n.userId === user?.id || n.userId === currentPatientId || n.userId === 'global')).length;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -101,7 +102,6 @@ export default function AppLayout() {
   // Global Emergency Logic for Doctors
   const doctors = useHospitalStore(state => state.doctors);
   const appointments = useHospitalStore(state => state.appointments);
-  const patients = useHospitalStore(state => state.patients);
   const currentDoctor = doctors.find(d => d.email === user?.email);
   const myAppointments = currentDoctor ? appointments.filter(a => a.doctorId === currentDoctor.id) : [];
   
@@ -128,8 +128,8 @@ export default function AppLayout() {
   // Bottom Nav specific items (Max 5 for mobile)
   const bottomNavItems = [
     { icon: LayoutDashboard, path: "/" },
-    { icon: Users, path: "/patients" },
     { icon: Calendar, path: "/appointments" },
+    { icon: CreditCard, path: "/billing" },
     { icon: Bell, path: "/notifications", badge: unreadCount },
     { icon: SettingsIcon, path: "/settings" }
   ].filter(item => {

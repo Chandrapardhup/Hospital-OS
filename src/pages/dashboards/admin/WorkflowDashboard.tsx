@@ -60,6 +60,17 @@ export default function WorkflowDashboard() {
         </Button>
       </div>
 
+      <div className="bg-primary/10 border border-primary/20 rounded-xl p-5 mb-2">
+        <h3 className="font-semibold text-primary mb-2 flex items-center gap-2">
+          <Network className="w-4 h-4" /> What are HospitalOS Workflows?
+        </h3>
+        <p className="text-sm text-foreground/80 leading-relaxed">
+          Workflows orchestrate complex medical and administrative processes by automatically triggering chains of tasks. 
+          When an event occurs (like an Emergency Admission), our AI agents coordinate to assign doctors, reserve beds, and notify staff in real-time. 
+          This eliminates manual paperwork and ensures critical operations happen instantly.
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Workflow List */}
         <div className="lg:col-span-1 bg-card/50 border border-border rounded-2xl overflow-hidden flex flex-col h-auto lg:h-[600px]">

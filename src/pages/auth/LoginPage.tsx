@@ -246,118 +246,122 @@ export default function LoginPage() {
   React.useEffect(() => {
     if (showSplash) {
       sessionStorage.setItem('hospitalos_splash_shown', 'true');
-      const timer = setTimeout(() => setShowSplash(false), 2800);
-      return () => clearTimeout(timer);
     }
-  }, [showSplash]);
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 8000); // 8 seconds for the EKG sequence
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <>
-      {/* ═══════ NETFLIX-STYLE SPLASH SCREEN ═══════ */}
+      {/* ═══════ EKG & NEURAL NETWORK SPLASH SCREEN ═══════ */}
       <AnimatePresence>
         {showSplash && (
           <motion.div
             key="splash"
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-            className="fixed inset-0 z-[200] bg-[#030014] flex items-center justify-center overflow-hidden"
+            exit={{ opacity: 0, scale: 1.1, filter: "blur(20px)" }}
+            transition={{ duration: 1, ease: "easeInOut" }}
+            className="fixed inset-0 z-[200] bg-[#020008] flex flex-col items-center justify-center overflow-hidden"
           >
-            {/* Deep background glow */}
-            <motion.div 
-              animate={{ scale: [0, 2.5], opacity: [0, 0.3, 0] }}
-              transition={{ duration: 2.5, ease: 'easeOut' }}
-              className="absolute w-[300px] h-[300px] rounded-full bg-purple-600/40 blur-[100px]"
-            />
-            <motion.div 
-              animate={{ scale: [0, 3], opacity: [0, 0.15, 0] }}
-              transition={{ duration: 2.8, ease: 'easeOut', delay: 0.2 }}
-              className="absolute w-[400px] h-[400px] rounded-full bg-cyan-500/20 blur-[120px]"
+            {/* Stage 1: The EKG Line (0 - 3s) */}
+            <motion.div
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 0, scale: 1.5 }}
+              transition={{ delay: 3, duration: 1 }}
+              className="absolute inset-0 flex items-center justify-center z-10"
+            >
+              <svg width="600" height="200" viewBox="0 0 600 200" className="opacity-80">
+                {/* Glowing drop shadow filter */}
+                <defs>
+                  <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="8" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+                <motion.path
+                  d="M 0 100 L 200 100 L 230 100 L 245 50 L 260 150 L 290 20 L 320 180 L 350 70 L 370 110 L 390 100 L 600 100"
+                  fill="transparent"
+                  stroke="#22d3ee"
+                  strokeWidth="4"
+                  filter="url(#glow)"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ duration: 2.5, ease: "linear" }}
+                />
+              </svg>
+            </motion.div>
+
+            {/* Stage 2: Neural Shockwave (3s - 5s) */}
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: [0, 10, 20], opacity: [0, 1, 0] }}
+              transition={{ delay: 3, duration: 1.5, ease: "easeOut" }}
+              className="absolute z-20 w-10 h-10 rounded-full border-4 border-cyan-400 shadow-[0_0_50px_rgba(34,211,238,1)]"
             />
 
-            <div className="relative flex flex-col items-center">
-              {/* Logo zoom-in */}
-              <motion.div
-                initial={{ scale: 0, opacity: 0, rotateY: -90 }}
-                animate={{ scale: [0, 1.2, 1], opacity: [0, 1, 1], rotateY: [-90, 10, 0] }}
-                transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
-                className="relative"
-                style={{ perspective: '800px' }}
-              >
-                <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl overflow-hidden shadow-[0_0_80px_rgba(168,85,247,0.5)] border-2 border-purple-500/30">
-                  <img src="/logo.png" alt="HospitalOS" className="w-full h-full object-cover" />
-                </div>
-                {/* Pulse ring */}
-                <motion.div
-                  animate={{ scale: [1, 2.5], opacity: [0.5, 0] }}
-                  transition={{ duration: 1.2, delay: 0.8, ease: 'easeOut' }}
-                  className="absolute inset-0 rounded-3xl border-2 border-purple-400"
-                />
-                <motion.div
-                  animate={{ scale: [1, 3], opacity: [0.3, 0] }}
-                  transition={{ duration: 1.5, delay: 1.0, ease: 'easeOut' }}
-                  className="absolute inset-0 rounded-3xl border border-cyan-400"
-                />
-              </motion.div>
-
-              {/* Heartbeat / EKG line */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: [0, 1, 1, 0] }}
-                transition={{ duration: 2.0, delay: 0.8, times: [0, 0.1, 0.7, 1] }}
-                className="mt-8 w-[280px] md:w-[400px] h-[60px] relative"
-              >
-                <svg viewBox="0 0 400 60" className="w-full h-full" preserveAspectRatio="none">
-                  <motion.path
-                    d="M0,30 L80,30 L100,30 L120,5 L140,55 L160,15 L175,45 L190,25 L200,30 L280,30 L300,30 L320,10 L340,50 L355,20 L365,40 L375,28 L380,30 L400,30"
-                    fill="none"
-                    stroke="url(#ekgGradient)"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 1.5, delay: 0.8, ease: 'easeInOut' }}
+            {/* Stage 3: The Logo Emergence (4s - 8s) */}
+            <motion.div
+              initial={{ opacity: 0, filter: "blur(20px)", scale: 0.8 }}
+              animate={{ opacity: 1, filter: "blur(0px)", scale: 1 }}
+              transition={{ delay: 4, duration: 2, ease: [0.22, 1, 0.36, 1] }}
+              className="relative z-30 flex flex-col items-center"
+            >
+              <div className="relative mb-6">
+                <div className="absolute inset-0 bg-cyan-500/20 blur-3xl rounded-full" />
+                <motion.div 
+                  initial={{ rotateY: 90 }}
+                  animate={{ rotateY: 0 }}
+                  transition={{ delay: 4.5, duration: 1.5, type: "spring", bounce: 0.4 }}
+                  className="w-24 h-24 bg-gradient-to-br from-slate-900 to-black border-2 border-cyan-500/50 rounded-2xl flex items-center justify-center shadow-[0_0_50px_rgba(34,211,238,0.3)] relative overflow-hidden"
+                >
+                  <motion.div 
+                    initial={{ y: "100%" }}
+                    animate={{ y: "-100%" }}
+                    transition={{ delay: 5.5, duration: 2, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-0 w-full h-full bg-gradient-to-b from-transparent via-cyan-400/20 to-transparent"
                   />
-                  <defs>
-                    <linearGradient id="ekgGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#a855f7" stopOpacity="0.3" />
-                      <stop offset="30%" stopColor="#a855f7" />
-                      <stop offset="50%" stopColor="#22d3ee" />
-                      <stop offset="70%" stopColor="#a855f7" />
-                      <stop offset="100%" stopColor="#a855f7" stopOpacity="0.3" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                {/* Glowing dot that traces the line */}
-                <motion.div
-                  initial={{ left: '0%' }}
-                  animate={{ left: '100%' }}
-                  transition={{ duration: 1.5, delay: 0.8, ease: 'easeInOut' }}
-                  className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.8)]"
-                />
-              </motion.div>
+                  <img src="/logo.png" alt="Logo" className="w-14 h-14 object-contain relative z-10" />
+                </motion.div>
+              </div>
 
-              {/* Text reveal */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.3, duration: 0.6 }}
-                className="mt-4 text-center"
+                transition={{ delay: 5, duration: 1 }}
+                className="text-center"
               >
-                <h1 className="text-2xl md:text-3xl font-black tracking-[0.3em] text-white" style={{ textTransform: 'uppercase' }}>
-                  Hospital<span className="text-purple-400">OS</span>
+                <h1 className="text-4xl font-black tracking-[0.25em] text-white flex items-center justify-center uppercase mb-3">
+                  Hospital<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">OS</span>
                 </h1>
-                <motion.p
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: 'auto' }}
-                  transition={{ delay: 1.8, duration: 0.5 }}
-                  className="text-[10px] md:text-xs text-white/40 tracking-[0.4em] mt-2 overflow-hidden whitespace-nowrap"
-                  style={{ textTransform: 'uppercase' }}
-                >
-                  Saving Lives. Powered By AI.
-                </motion.p>
+                
+                <div className="flex items-center justify-center gap-2">
+                  <motion.div 
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ delay: 5.5, duration: 1 }}
+                    className="h-[1px] w-12 bg-cyan-500/50 origin-right"
+                  />
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 6, duration: 1 }}
+                    className="text-[10px] text-cyan-200/70 tracking-[0.5em] font-medium uppercase"
+                  >
+                    Enterprise AI
+                  </motion.p>
+                  <motion.div 
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ delay: 5.5, duration: 1 }}
+                    className="h-[1px] w-12 bg-cyan-500/50 origin-left"
+                  />
+                </div>
               </motion.div>
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
