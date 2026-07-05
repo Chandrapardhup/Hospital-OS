@@ -319,62 +319,28 @@ export default function LoginPage() {
         let targetY = p.y;
         let speed = 0.05;
 
-        if (elapsed < 2) {
-          // PHASE 1: Silk Vortex (0s - 2s)
+        if (elapsed < 3) {
+          // PHASE 1: Silk Vortex (0s - 3s) - Slow, smooth swirling
           p.angle += 0.02;
-          p.radius -= 1;
+          p.radius -= 0.5;
           if (p.radius < 50) p.radius = 400;
           targetX = cx + Math.cos(p.angle) * p.radius;
-          targetY = cy + Math.sin(p.angle) * p.radius + Math.sin(elapsed * 5 + i) * 20;
-          speed = 0.1;
-
-        } else if (elapsed < 4.5) {
-          // PHASE 2: 3D DNA Double Helix (2s - 4.5s)
-          const dnaProgress = i / numParticles;
-          const helixRadius = width < 768 ? 40 : 80;
-          const helixHeight = width < 768 ? 400 : 600;
-          
-          const strand = i % 2 === 0 ? 1 : -1;
-          const t = (dnaProgress * Math.PI * 8) + (elapsed * 3);
-          
-          targetX = cx + Math.sin(t) * helixRadius * strand;
-          targetY = cy - (helixHeight/2) + (dnaProgress * helixHeight);
-          
-          // Add sine wave oscillation to make it look like "silk"
-          targetX += Math.sin(elapsed * 2 + p.y * 0.01) * 20;
-          
+          targetY = cy + Math.sin(p.angle) * p.radius + Math.sin(elapsed * 4 + i) * 30;
           speed = 0.08;
-
-        } else if (elapsed < 5.5) {
-          // PHASE 3: EKG Heartbeat (4.5s - 5.5s)
-          const ekgProgress = i / numParticles;
-          const ekgWidth = width < 768 ? 300 : 600;
+        } else {
+          // PHASE 2: Glowing Halo / Eclipse (3s onwards)
+          // The particles smoothly coalesce into a perfect rotating halo ring behind where the logo will be.
+          p.angle += 0.04;
+          // Smoothly interpolate radius to the halo radius (140px)
+          const haloRadius = 140 + Math.sin(elapsed * 5 + i * 0.1) * 15; 
+          targetX = cx + Math.cos(p.angle) * haloRadius;
+          targetY = cy + Math.sin(p.angle) * haloRadius;
           
-          targetX = (cx - ekgWidth/2) + ekgProgress * ekgWidth;
-          targetY = cy;
-          
-          // The heartbeat spike
-          if (ekgProgress > 0.45 && ekgProgress < 0.5) {
-            targetY -= Math.sin((ekgProgress - 0.45) * 20 * Math.PI) * 150;
-          } else if (ekgProgress > 0.5 && ekgProgress < 0.55) {
-            targetY += Math.sin((ekgProgress - 0.5) * 20 * Math.PI) * 80;
-          }
-          
+          // Gradually pull particles into the perfect circle
           speed = 0.15;
-
-        } else if (elapsed < 6.5) {
-          // PHASE 4: Core Implosion & Explosion (5.5s - 6.5s)
-          if (elapsed < 5.8) {
-             // Implode
-             targetX = cx;
-             targetY = cy;
-             speed = 0.2;
-          } else {
-             // Explode
-             p.color = '#ffffff';
-             targetX = cx + (Math.random() - 0.5) * width * 2;
-             targetY = cy + (Math.random() - 0.5) * height * 2;
-             speed = 0.1;
+          // Soften the color to look like a glowing aura
+          if (elapsed > 4) {
+            p.color = i % 2 === 0 ? 'rgba(34, 211, 238, 0.6)' : 'rgba(168, 85, 247, 0.6)';
           }
         }
 

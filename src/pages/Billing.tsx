@@ -39,7 +39,7 @@ export default function Billing() {
       amount: Number(newInvoiceAmount),
       status: 'Pending',
       date: new Date().toISOString(),
-      items: [{ name: 'Consultation & Services', amount: Number(newInvoiceAmount) }]
+      items: [{ description: 'Consultation & Services', cost: Number(newInvoiceAmount) }]
     });
     
     // Add notification for the patient
