@@ -9,9 +9,12 @@ export default function NotificationsHub() {
   const notifications = useHospitalStore(state => state.notifications);
   const markNotificationRead = useHospitalStore(state => state.markNotificationRead);
   const user = useAuthStore(state => state.user);
+  const patients = useHospitalStore(state => state.patients);
+  
+  const currentPatientId = patients.find(p => p.email === user?.email)?.id;
 
   // Filter notifications for this user or global notifications
-  const userNotifications = notifications.filter(n => n.userId === user?.id || n.userId === 'global');
+  const userNotifications = notifications.filter(n => n.userId === user?.id || n.userId === currentPatientId || n.userId === 'global');
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-20">

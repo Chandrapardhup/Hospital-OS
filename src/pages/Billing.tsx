@@ -9,11 +9,12 @@ export default function Billing() {
   const currentUser = useAuthStore(state => state.user);
   const isPatient = currentUser?.role === 'user';
   
-  const allInvoices = useHospitalStore(state => state.invoices);
-  // Filter invoices if the current user is a patient
-  const invoices = isPatient ? allInvoices.filter(i => i.patientId === currentUser.id) : allInvoices;
-  
   const patients = useHospitalStore(state => state.patients);
+  const currentPatientId = patients.find(p => p.email === currentUser?.email)?.id || currentUser?.id;
+  
+  const allInvoices = useHospitalStore(state => state.invoices);
+  // Filter invoices if the current user is a patient using currentPatientId
+  const invoices = isPatient ? allInvoices.filter(i => i.patientId === currentPatientId) : allInvoices;
   const addInvoice = useHospitalStore(state => state.addInvoice);
   const updateInvoice = useHospitalStore(state => state.updateInvoice);
   const addNotification = useHospitalStore(state => state.addNotification);
