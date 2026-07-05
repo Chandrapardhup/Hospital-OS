@@ -236,185 +236,228 @@ export default function LoginPage() {
     }
   };
 
-  // Netflix-style splash intro
   const [showSplash, setShowSplash] = useState(() => {
-    // Only show splash once per session
     if (sessionStorage.getItem('hospitalos_splash_shown')) return false;
     return true;
   });
 
-  React.useEffect(() => {
-    if (showSplash) {
-      sessionStorage.setItem('hospitalos_splash_shown', 'true');
+  const [splashPhase, setSplashPhase] = useState<'canvas' | 'logo' | 'done'>('canvas');
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    if (!showSplash) return;
+    sessionStorage.setItem('hospitalos_splash_shown', 'true');
+
+    // Transition phases
+    const t1 = setTimeout(() => setSplashPhase('logo'), 6500); // 6.5s Canvas finishes, show logo
+    const t2 = setTimeout(() => setShowSplash(false), 9500);   // 9.5s total splash time
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [showSplash]);
+
+  // High-Performance Canvas Particle System
+  useEffect(() => {
+    if (splashPhase !== 'canvas') return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d', { alpha: false });
+    if (!ctx) return;
+
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    const handleResize = () => {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+    };
+    window.addEventListener('resize', handleResize);
+
+    const numParticles = 3000;
+    const particles: any[] = [];
+    
+    // Initialize Particles
+    for (let i = 0; i < numParticles; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        baseX: 0,
+        baseY: 0,
+        color: i % 2 === 0 ? '#22d3ee' : '#a855f7', // Cyan and Purple
+        size: Math.random() * 1.5 + 0.5,
+        vx: 0,
+        vy: 0,
+        angle: Math.random() * Math.PI * 2,
+        radius: Math.random() * 400 + 100,
+      });
     }
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 5500); // 5.5 seconds total - extremely fast, snappy, cinematic
-    return () => clearTimeout(timer);
-  }, []);
+
+    let animationId: number;
+    let startTime = Date.now();
+
+    const render = () => {
+      const elapsed = (Date.now() - startTime) / 1000; // in seconds
+
+      // Dark trail effect for smooth motion blur
+      ctx.fillStyle = 'rgba(2, 0, 8, 0.15)';
+      ctx.fillRect(0, 0, width, height);
+
+      const cx = width / 2;
+      const cy = height / 2;
+
+      for (let i = 0; i < numParticles; i++) {
+        const p = particles[i];
+        
+        let targetX = p.x;
+        let targetY = p.y;
+        let speed = 0.05;
+
+        if (elapsed < 2) {
+          // PHASE 1: Silk Vortex (0s - 2s)
+          p.angle += 0.02;
+          p.radius -= 1;
+          if (p.radius < 50) p.radius = 400;
+          targetX = cx + Math.cos(p.angle) * p.radius;
+          targetY = cy + Math.sin(p.angle) * p.radius + Math.sin(elapsed * 5 + i) * 20;
+          speed = 0.1;
+
+        } else if (elapsed < 4.5) {
+          // PHASE 2: 3D DNA Double Helix (2s - 4.5s)
+          const dnaProgress = i / numParticles;
+          const helixRadius = width < 768 ? 40 : 80;
+          const helixHeight = width < 768 ? 400 : 600;
+          
+          const strand = i % 2 === 0 ? 1 : -1;
+          const t = (dnaProgress * Math.PI * 8) + (elapsed * 3);
+          
+          targetX = cx + Math.sin(t) * helixRadius * strand;
+          targetY = cy - (helixHeight/2) + (dnaProgress * helixHeight);
+          
+          // Add sine wave oscillation to make it look like "silk"
+          targetX += Math.sin(elapsed * 2 + p.y * 0.01) * 20;
+          
+          speed = 0.08;
+
+        } else if (elapsed < 5.5) {
+          // PHASE 3: EKG Heartbeat (4.5s - 5.5s)
+          const ekgProgress = i / numParticles;
+          const ekgWidth = width < 768 ? 300 : 600;
+          
+          targetX = (cx - ekgWidth/2) + ekgProgress * ekgWidth;
+          targetY = cy;
+          
+          // The heartbeat spike
+          if (ekgProgress > 0.45 && ekgProgress < 0.5) {
+            targetY -= Math.sin((ekgProgress - 0.45) * 20 * Math.PI) * 150;
+          } else if (ekgProgress > 0.5 && ekgProgress < 0.55) {
+            targetY += Math.sin((ekgProgress - 0.5) * 20 * Math.PI) * 80;
+          }
+          
+          speed = 0.15;
+
+        } else if (elapsed < 6.5) {
+          // PHASE 4: Core Implosion & Explosion (5.5s - 6.5s)
+          if (elapsed < 5.8) {
+             // Implode
+             targetX = cx;
+             targetY = cy;
+             speed = 0.2;
+          } else {
+             // Explode
+             p.color = '#ffffff';
+             targetX = cx + (Math.random() - 0.5) * width * 2;
+             targetY = cy + (Math.random() - 0.5) * height * 2;
+             speed = 0.1;
+          }
+        }
+
+        // Apply easing to target
+        p.x += (targetX - p.x) * speed;
+        p.y += (targetY - p.y) * speed;
+
+        // Draw particle
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      animationId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationId);
+    };
+  }, [splashPhase]);
 
   return (
     <>
-      {/* ═══════ NEURAL SILK & DNA MATRIX SPLASH SCREEN ═══════ */}
+      {/* ═══════ CANVAS WEBGL-STYLE SPLASH SCREEN ═══════ */}
       <AnimatePresence>
         {showSplash && (
           <motion.div
-            key="splash"
-            exit={{ opacity: 0, scale: 1.05, filter: "blur(15px)" }}
-            transition={{ duration: 0.6, ease: "easeIn" }}
-            className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center overflow-hidden perspective-[1000px]"
+            key="splash-container"
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1 }}
+            className="fixed inset-0 z-[200] bg-[#020008] flex items-center justify-center overflow-hidden"
           >
-            {/* 1. Glossy Silk Waves (0s - 3s) */}
-            <div className="absolute inset-0 pointer-events-none opacity-60 mix-blend-screen">
-              <motion.div
-                initial={{ rotate: -10, y: "100%", opacity: 0 }}
-                animate={{ rotate: 5, y: "-150%", opacity: [0, 1, 0] }}
-                transition={{ duration: 3, ease: [0.19, 1, 0.22, 1] }}
-                className="absolute w-[200%] h-[150%] bg-gradient-to-t from-transparent via-cyan-400/40 to-transparent blur-3xl -left-[50%]"
-                style={{ borderRadius: "100% 50% 100% 50%" }}
-              />
-              <motion.div
-                initial={{ rotate: 10, y: "100%", opacity: 0 }}
-                animate={{ rotate: -5, y: "-150%", opacity: [0, 1, 0] }}
-                transition={{ duration: 3.2, delay: 0.2, ease: [0.19, 1, 0.22, 1] }}
-                className="absolute w-[200%] h-[150%] bg-gradient-to-t from-transparent via-purple-500/30 to-transparent blur-[80px] -left-[50%]"
-                style={{ borderRadius: "50% 100% 50% 100%" }}
-              />
-            </div>
-
-            {/* 2. Rapid DNA Particle Helix (0.5s - 3s) */}
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: [0, 1.5, 0.2], opacity: [0, 1, 0] }}
-              transition={{ delay: 0.5, duration: 3, times: [0, 0.6, 1], ease: "easeInOut" }}
-              className="absolute z-10 w-full h-full flex items-center justify-center pointer-events-none transform-style-3d"
-            >
-              {Array.from({ length: 60 }).map((_, i) => (
-                <motion.div
-                  key={`dna-${i}`}
-                  initial={{ 
-                    x: Math.sin(i * 0.3) * 60, 
-                    y: (i - 30) * 10,
-                    z: Math.cos(i * 0.3) * 60,
-                    opacity: 0,
-                  }}
-                  animate={{ 
-                    rotateY: 360 * 3, // Spin super fast
-                    opacity: [0, 1, 0.8],
-                  }}
-                  transition={{ duration: 3, ease: "linear" }}
-                  className="absolute w-2 h-2 rounded-full bg-cyan-300 shadow-[0_0_12px_rgba(34,211,238,1)]"
+            {/* Phase A: The Canvas Animation */}
+            <AnimatePresence>
+              {splashPhase === 'canvas' && (
+                <motion.canvas
+                  key="particle-canvas"
+                  ref={canvasRef}
+                  exit={{ opacity: 0, filter: "blur(20px)", scale: 1.2 }}
+                  transition={{ duration: 0.8 }}
+                  className="absolute inset-0 w-full h-full"
                 />
-              ))}
-              {/* Secondary Strand */}
-              {Array.from({ length: 60 }).map((_, i) => (
+              )}
+            </AnimatePresence>
+
+            {/* Phase B: The Glorious Logo Reveal */}
+            <AnimatePresence>
+              {splashPhase === 'logo' && (
                 <motion.div
-                  key={`dna2-${i}`}
-                  initial={{ 
-                    x: Math.sin(i * 0.3 + Math.PI) * 60, 
-                    y: (i - 30) * 10,
-                    z: Math.cos(i * 0.3 + Math.PI) * 60,
-                    opacity: 0,
-                  }}
-                  animate={{ 
-                    rotateY: 360 * 3, 
-                    opacity: [0, 1, 0.8],
-                  }}
-                  transition={{ duration: 3, ease: "linear" }}
-                  className="absolute w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_12px_rgba(168,85,247,1)]"
-                />
-              ))}
-            </motion.div>
-
-            {/* 3. Flash Heartbeat EKG (2s - 3.5s) */}
-            <motion.div
-              initial={{ opacity: 0, scale: 1.5 }}
-              animate={{ opacity: [0, 1, 0], scale: 1 }}
-              transition={{ delay: 2, duration: 1.5, ease: "easeOut" }}
-              className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none mix-blend-screen"
-            >
-              <svg width="800" height="300" viewBox="0 0 800 300">
-                <defs>
-                  <filter id="ekg-glow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feGaussianBlur stdDeviation="10" result="blur" />
-                    <feMerge>
-                      <feMergeNode in="blur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                </defs>
-                <motion.path
-                  d="M 0 150 L 300 150 L 340 150 L 370 50 L 400 250 L 430 150 L 800 150"
-                  fill="transparent"
-                  stroke="#fff"
-                  strokeWidth="8"
-                  filter="url(#ekg-glow)"
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ duration: 1, ease: "easeInOut" }}
-                />
-              </svg>
-            </motion.div>
-
-            {/* 4. Liquid Orb Implosion (3s - 3.5s) */}
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: [0, 15, 0], opacity: [0, 1, 0] }}
-              transition={{ delay: 3.2, duration: 0.8, ease: "backIn" }}
-              className="absolute z-30 w-32 h-32 bg-cyan-400 rounded-full blur-[40px] mix-blend-screen"
-            />
-
-            {/* 5. Ultra-Premium Glassmorphism Logo Reveal (3.8s - 5.5s) */}
-            <motion.div
-              initial={{ opacity: 0, filter: "blur(30px)", scale: 1.5, rotateX: 45 }}
-              animate={{ opacity: 1, filter: "blur(0px)", scale: 1, rotateX: 0 }}
-              transition={{ delay: 3.8, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-              className="relative z-40 flex flex-col items-center justify-center p-8 md:p-12 rounded-[2.5rem] bg-black/40 border border-white/20 backdrop-blur-3xl shadow-[0_30px_80px_-15px_rgba(0,0,0,0.8),inset_0_2px_20px_rgba(255,255,255,0.15)] overflow-hidden"
-            >
-              {/* Glossy Diagonal Shine */}
-              <motion.div 
-                initial={{ x: "-150%", opacity: 0 }}
-                animate={{ x: "200%", opacity: [0, 0.6, 0] }}
-                transition={{ delay: 4.5, duration: 1.5, ease: "easeInOut" }}
-                className="absolute inset-0 w-[200%] h-full bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-45 pointer-events-none"
-              />
-
-              <div className="relative mb-6">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 4.2, duration: 0.8, type: "spring", bounce: 0.6 }}
-                  className="w-28 h-28 bg-gradient-to-br from-slate-800 to-black rounded-3xl flex items-center justify-center border border-cyan-400/30 shadow-[0_0_50px_rgba(34,211,238,0.4),inset_0_2px_10px_rgba(255,255,255,0.1)] relative overflow-hidden"
+                  key="logo-reveal"
+                  initial={{ opacity: 0, filter: "blur(30px)", scale: 0.8 }}
+                  animate={{ opacity: 1, filter: "blur(0px)", scale: 1 }}
+                  exit={{ opacity: 0, filter: "blur(10px)", scale: 1.1 }}
+                  transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+                  className="relative z-10 flex flex-col items-center justify-center p-12 rounded-[3rem] bg-white/5 border border-white/10 backdrop-blur-3xl shadow-[0_0_80px_rgba(34,211,238,0.2)]"
                 >
-                  <img src="/logo.png" alt="HospitalOS" className="w-16 h-16 object-contain relative z-10 filter drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]" />
+                  <motion.div 
+                    initial={{ x: "-150%", opacity: 0 }}
+                    animate={{ x: "200%", opacity: [0, 0.5, 0] }}
+                    transition={{ delay: 0.5, duration: 1.5, ease: "easeInOut" }}
+                    className="absolute inset-0 w-[200%] h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-45 pointer-events-none"
+                  />
+
+                  <div className="w-28 h-28 mb-6 rounded-3xl bg-black border border-cyan-400/40 flex items-center justify-center shadow-[0_0_50px_rgba(34,211,238,0.4)] relative overflow-hidden">
+                    <img src="/logo.png" alt="HospitalOS" className="w-16 h-16 object-contain filter drop-shadow-[0_0_15px_rgba(34,211,238,1)] relative z-10" />
+                  </div>
+
+                  <h1 className="text-4xl md:text-5xl font-black tracking-[0.25em] text-white flex items-center justify-center uppercase mb-4">
+                    Hospital<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">OS</span>
+                  </h1>
+                  
+                  <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
+                  
+                  <p className="text-xs text-cyan-200/60 tracking-[0.6em] font-medium uppercase mt-5 text-center">
+                    Intelligent Healthcare Engine
+                  </p>
                 </motion.div>
-              </div>
-
-              <motion.h1 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 4.5, duration: 0.8 }}
-                className="text-4xl md:text-5xl font-black tracking-[0.25em] text-white flex items-center justify-center uppercase mb-3"
-              >
-                Hospital<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500">OS</span>
-              </motion.h1>
-              
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: "100%" }}
-                transition={{ delay: 4.8, duration: 1, ease: "easeOut" }}
-                className="h-[1px] bg-gradient-to-r from-transparent via-cyan-400/80 to-transparent w-full"
-              />
-
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 5, duration: 0.8 }}
-                className="text-[10px] md:text-xs text-white/60 tracking-[0.6em] font-medium uppercase mt-4 text-center"
-              >
-                Intelligent Medical Engine
-              </motion.p>
-            </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>
