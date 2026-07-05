@@ -280,7 +280,8 @@ export default function LoginPage() {
     };
     window.addEventListener('resize', handleResize);
 
-    const numParticles = 3000;
+    const isMobile = width < 768;
+    const numParticles = isMobile ? 1200 : 3000; // Less particles on mobile for performance and better visual density
     const particles: any[] = [];
     
     // Initialize Particles
@@ -291,11 +292,11 @@ export default function LoginPage() {
         baseX: 0,
         baseY: 0,
         color: i % 2 === 0 ? '#22d3ee' : '#a855f7', // Cyan and Purple
-        size: Math.random() * 1.5 + 0.5,
+        size: isMobile ? Math.random() * 1.2 + 0.3 : Math.random() * 1.5 + 0.5, // Slightly smaller on mobile
         vx: 0,
         vy: 0,
         angle: Math.random() * Math.PI * 2,
-        radius: Math.random() * 400 + 100,
+        radius: Math.random() * (isMobile ? 250 : 400) + (isMobile ? 50 : 100),
       });
     }
 
@@ -311,6 +312,8 @@ export default function LoginPage() {
 
       const cx = width / 2;
       const cy = height / 2;
+      
+      const isMobileNow = window.innerWidth < 768;
 
       for (let i = 0; i < numParticles; i++) {
         const p = particles[i];
@@ -322,22 +325,31 @@ export default function LoginPage() {
         if (elapsed < 3) {
           // PHASE 1: Silk Vortex (0s - 3s) - Slow, smooth swirling
           p.angle += 0.02;
-          p.radius -= 0.5;
-          if (p.radius < 50) p.radius = 400;
+          p.radius -= isMobileNow ? 0.3 : 0.5;
+          const minRadius = isMobileNow ? 30 : 50;
+          const maxRadius = isMobileNow ? 250 : 400;
+          
+          if (p.radius < minRadius) p.radius = maxRadius;
           targetX = cx + Math.cos(p.angle) * p.radius;
-          targetY = cy + Math.sin(p.angle) * p.radius + Math.sin(elapsed * 4 + i) * 30;
+          
+          // Adjust vertical sine wave for mobile so it doesn't stretch too far
+          const waveAmplitude = isMobileNow ? 15 : 30;
+          targetY = cy + Math.sin(p.angle) * p.radius + Math.sin(elapsed * 4 + i) * waveAmplitude;
           speed = 0.08;
         } else {
           // PHASE 2: Glowing Halo / Eclipse (3s onwards)
-          // The particles smoothly coalesce into a perfect rotating halo ring behind where the logo will be.
           p.angle += 0.04;
-          // Smoothly interpolate radius to the halo radius (140px)
-          const haloRadius = 140 + Math.sin(elapsed * 5 + i * 0.1) * 15; 
+          
+          // Dynamic halo radius based on screen size
+          const baseHaloRadius = isMobileNow ? 90 : 140;
+          const haloPulse = Math.sin(elapsed * 5 + i * 0.1) * (isMobileNow ? 8 : 15);
+          const haloRadius = baseHaloRadius + haloPulse; 
+          
           targetX = cx + Math.cos(p.angle) * haloRadius;
           targetY = cy + Math.sin(p.angle) * haloRadius;
           
-          // Gradually pull particles into the perfect circle
           speed = 0.15;
+          
           // Soften the color to look like a glowing aura
           if (elapsed > 4) {
             p.color = i % 2 === 0 ? 'rgba(34, 211, 238, 0.6)' : 'rgba(168, 85, 247, 0.6)';
