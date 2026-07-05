@@ -249,33 +249,94 @@ export default function LoginPage() {
     }
     const timer = setTimeout(() => {
       setShowSplash(false);
-    }, 8000); // 8 seconds for the EKG sequence
+    }, 5500); // 5.5 seconds total - extremely fast, snappy, cinematic
     return () => clearTimeout(timer);
   }, []);
 
   return (
     <>
-      {/* ═══════ EKG & NEURAL NETWORK SPLASH SCREEN ═══════ */}
+      {/* ═══════ NEURAL SILK & DNA MATRIX SPLASH SCREEN ═══════ */}
       <AnimatePresence>
         {showSplash && (
           <motion.div
             key="splash"
-            exit={{ opacity: 0, scale: 1.1, filter: "blur(20px)" }}
-            transition={{ duration: 1, ease: "easeInOut" }}
-            className="fixed inset-0 z-[200] bg-[#020008] flex flex-col items-center justify-center overflow-hidden"
+            exit={{ opacity: 0, scale: 1.05, filter: "blur(15px)" }}
+            transition={{ duration: 0.6, ease: "easeIn" }}
+            className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center overflow-hidden perspective-[1000px]"
           >
-            {/* Stage 1: The EKG Line (0 - 3s) */}
+            {/* 1. Glossy Silk Waves (0s - 3s) */}
+            <div className="absolute inset-0 pointer-events-none opacity-60 mix-blend-screen">
+              <motion.div
+                initial={{ rotate: -10, y: "100%", opacity: 0 }}
+                animate={{ rotate: 5, y: "-150%", opacity: [0, 1, 0] }}
+                transition={{ duration: 3, ease: [0.19, 1, 0.22, 1] }}
+                className="absolute w-[200%] h-[150%] bg-gradient-to-t from-transparent via-cyan-400/40 to-transparent blur-3xl -left-[50%]"
+                style={{ borderRadius: "100% 50% 100% 50%" }}
+              />
+              <motion.div
+                initial={{ rotate: 10, y: "100%", opacity: 0 }}
+                animate={{ rotate: -5, y: "-150%", opacity: [0, 1, 0] }}
+                transition={{ duration: 3.2, delay: 0.2, ease: [0.19, 1, 0.22, 1] }}
+                className="absolute w-[200%] h-[150%] bg-gradient-to-t from-transparent via-purple-500/30 to-transparent blur-[80px] -left-[50%]"
+                style={{ borderRadius: "50% 100% 50% 100%" }}
+              />
+            </div>
+
+            {/* 2. Rapid DNA Particle Helix (0.5s - 3s) */}
             <motion.div
-              initial={{ opacity: 1 }}
-              animate={{ opacity: 0, scale: 1.5 }}
-              transition={{ delay: 3, duration: 1 }}
-              className="absolute inset-0 flex items-center justify-center z-10"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: [0, 1.5, 0.2], opacity: [0, 1, 0] }}
+              transition={{ delay: 0.5, duration: 3, times: [0, 0.6, 1], ease: "easeInOut" }}
+              className="absolute z-10 w-full h-full flex items-center justify-center pointer-events-none transform-style-3d"
             >
-              <svg width="600" height="200" viewBox="0 0 600 200" className="opacity-80">
-                {/* Glowing drop shadow filter */}
+              {Array.from({ length: 60 }).map((_, i) => (
+                <motion.div
+                  key={`dna-${i}`}
+                  initial={{ 
+                    x: Math.sin(i * 0.3) * 60, 
+                    y: (i - 30) * 10,
+                    z: Math.cos(i * 0.3) * 60,
+                    opacity: 0,
+                  }}
+                  animate={{ 
+                    rotateY: 360 * 3, // Spin super fast
+                    opacity: [0, 1, 0.8],
+                  }}
+                  transition={{ duration: 3, ease: "linear" }}
+                  className="absolute w-2 h-2 rounded-full bg-cyan-300 shadow-[0_0_12px_rgba(34,211,238,1)]"
+                />
+              ))}
+              {/* Secondary Strand */}
+              {Array.from({ length: 60 }).map((_, i) => (
+                <motion.div
+                  key={`dna2-${i}`}
+                  initial={{ 
+                    x: Math.sin(i * 0.3 + Math.PI) * 60, 
+                    y: (i - 30) * 10,
+                    z: Math.cos(i * 0.3 + Math.PI) * 60,
+                    opacity: 0,
+                  }}
+                  animate={{ 
+                    rotateY: 360 * 3, 
+                    opacity: [0, 1, 0.8],
+                  }}
+                  transition={{ duration: 3, ease: "linear" }}
+                  className="absolute w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_12px_rgba(168,85,247,1)]"
+                />
+              ))}
+            </motion.div>
+
+            {/* 3. Flash Heartbeat EKG (2s - 3.5s) */}
+            <motion.div
+              initial={{ opacity: 0, scale: 1.5 }}
+              animate={{ opacity: [0, 1, 0], scale: 1 }}
+              transition={{ delay: 2, duration: 1.5, ease: "easeOut" }}
+              className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none mix-blend-screen"
+            >
+              <svg width="800" height="300" viewBox="0 0 800 300">
                 <defs>
-                  <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feGaussianBlur stdDeviation="8" result="blur" />
+                  <filter id="ekg-glow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="10" result="blur" />
                     <feMerge>
                       <feMergeNode in="blur" />
                       <feMergeNode in="SourceGraphic" />
@@ -283,84 +344,76 @@ export default function LoginPage() {
                   </filter>
                 </defs>
                 <motion.path
-                  d="M 0 100 L 200 100 L 230 100 L 245 50 L 260 150 L 290 20 L 320 180 L 350 70 L 370 110 L 390 100 L 600 100"
+                  d="M 0 150 L 300 150 L 340 150 L 370 50 L 400 250 L 430 150 L 800 150"
                   fill="transparent"
-                  stroke="#22d3ee"
-                  strokeWidth="4"
-                  filter="url(#glow)"
+                  stroke="#fff"
+                  strokeWidth="8"
+                  filter="url(#ekg-glow)"
                   initial={{ pathLength: 0 }}
                   animate={{ pathLength: 1 }}
-                  transition={{ duration: 2.5, ease: "linear" }}
+                  transition={{ duration: 1, ease: "easeInOut" }}
                 />
               </svg>
             </motion.div>
 
-            {/* Stage 2: Neural Shockwave (3s - 5s) */}
+            {/* 4. Liquid Orb Implosion (3s - 3.5s) */}
             <motion.div
               initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: [0, 10, 20], opacity: [0, 1, 0] }}
-              transition={{ delay: 3, duration: 1.5, ease: "easeOut" }}
-              className="absolute z-20 w-10 h-10 rounded-full border-4 border-cyan-400 shadow-[0_0_50px_rgba(34,211,238,1)]"
+              animate={{ scale: [0, 15, 0], opacity: [0, 1, 0] }}
+              transition={{ delay: 3.2, duration: 0.8, ease: "backIn" }}
+              className="absolute z-30 w-32 h-32 bg-cyan-400 rounded-full blur-[40px] mix-blend-screen"
             />
 
-            {/* Stage 3: The Logo Emergence (4s - 8s) */}
+            {/* 5. Ultra-Premium Glassmorphism Logo Reveal (3.8s - 5.5s) */}
             <motion.div
-              initial={{ opacity: 0, filter: "blur(20px)", scale: 0.8 }}
-              animate={{ opacity: 1, filter: "blur(0px)", scale: 1 }}
-              transition={{ delay: 4, duration: 2, ease: [0.22, 1, 0.36, 1] }}
-              className="relative z-30 flex flex-col items-center"
+              initial={{ opacity: 0, filter: "blur(30px)", scale: 1.5, rotateX: 45 }}
+              animate={{ opacity: 1, filter: "blur(0px)", scale: 1, rotateX: 0 }}
+              transition={{ delay: 3.8, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+              className="relative z-40 flex flex-col items-center justify-center p-8 md:p-12 rounded-[2.5rem] bg-black/40 border border-white/20 backdrop-blur-3xl shadow-[0_30px_80px_-15px_rgba(0,0,0,0.8),inset_0_2px_20px_rgba(255,255,255,0.15)] overflow-hidden"
             >
+              {/* Glossy Diagonal Shine */}
+              <motion.div 
+                initial={{ x: "-150%", opacity: 0 }}
+                animate={{ x: "200%", opacity: [0, 0.6, 0] }}
+                transition={{ delay: 4.5, duration: 1.5, ease: "easeInOut" }}
+                className="absolute inset-0 w-[200%] h-full bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-45 pointer-events-none"
+              />
+
               <div className="relative mb-6">
-                <div className="absolute inset-0 bg-cyan-500/20 blur-3xl rounded-full" />
-                <motion.div 
-                  initial={{ rotateY: 90 }}
-                  animate={{ rotateY: 0 }}
-                  transition={{ delay: 4.5, duration: 1.5, type: "spring", bounce: 0.4 }}
-                  className="w-24 h-24 bg-gradient-to-br from-slate-900 to-black border-2 border-cyan-500/50 rounded-2xl flex items-center justify-center shadow-[0_0_50px_rgba(34,211,238,0.3)] relative overflow-hidden"
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 4.2, duration: 0.8, type: "spring", bounce: 0.6 }}
+                  className="w-28 h-28 bg-gradient-to-br from-slate-800 to-black rounded-3xl flex items-center justify-center border border-cyan-400/30 shadow-[0_0_50px_rgba(34,211,238,0.4),inset_0_2px_10px_rgba(255,255,255,0.1)] relative overflow-hidden"
                 >
-                  <motion.div 
-                    initial={{ y: "100%" }}
-                    animate={{ y: "-100%" }}
-                    transition={{ delay: 5.5, duration: 2, repeat: Infinity, ease: "linear" }}
-                    className="absolute inset-0 w-full h-full bg-gradient-to-b from-transparent via-cyan-400/20 to-transparent"
-                  />
-                  <img src="/logo.png" alt="Logo" className="w-14 h-14 object-contain relative z-10" />
+                  <img src="/logo.png" alt="HospitalOS" className="w-16 h-16 object-contain relative z-10 filter drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]" />
                 </motion.div>
               </div>
 
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
+              <motion.h1 
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 5, duration: 1 }}
-                className="text-center"
+                transition={{ delay: 4.5, duration: 0.8 }}
+                className="text-4xl md:text-5xl font-black tracking-[0.25em] text-white flex items-center justify-center uppercase mb-3"
               >
-                <h1 className="text-4xl font-black tracking-[0.25em] text-white flex items-center justify-center uppercase mb-3">
-                  Hospital<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">OS</span>
-                </h1>
-                
-                <div className="flex items-center justify-center gap-2">
-                  <motion.div 
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ delay: 5.5, duration: 1 }}
-                    className="h-[1px] w-12 bg-cyan-500/50 origin-right"
-                  />
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 6, duration: 1 }}
-                    className="text-[10px] text-cyan-200/70 tracking-[0.5em] font-medium uppercase"
-                  >
-                    Enterprise AI
-                  </motion.p>
-                  <motion.div 
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ delay: 5.5, duration: 1 }}
-                    className="h-[1px] w-12 bg-cyan-500/50 origin-left"
-                  />
-                </div>
-              </motion.div>
+                Hospital<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500">OS</span>
+              </motion.h1>
+              
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: "100%" }}
+                transition={{ delay: 4.8, duration: 1, ease: "easeOut" }}
+                className="h-[1px] bg-gradient-to-r from-transparent via-cyan-400/80 to-transparent w-full"
+              />
+
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 5, duration: 0.8 }}
+                className="text-[10px] md:text-xs text-white/60 tracking-[0.6em] font-medium uppercase mt-4 text-center"
+              >
+                Intelligent Medical Engine
+              </motion.p>
             </motion.div>
           </motion.div>
         )}
