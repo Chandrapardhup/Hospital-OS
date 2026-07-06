@@ -5,6 +5,7 @@ import { useTranslation } from '../translations';
 import { AIService } from '../services/AIService';
 import * as Dialog from '@radix-ui/react-dialog';
 import { useAuthStore } from '../store/useAuthStore';
+import { AssignDoctorModal } from '../components/AssignDoctorModal';
 
 export default function EmergencyTriage() {
   const { t } = useTranslation();
@@ -16,6 +17,7 @@ export default function EmergencyTriage() {
   const emergencyPatients = patients.filter(p => p.status === 'Emergency');
 
   const [isAdmitOpen, setIsAdmitOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [symptoms, setSymptoms] = useState('');
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [evaluation, setEvaluation] = useState<{score: number, category: string, notification: string} | null>(null);
@@ -132,7 +134,10 @@ export default function EmergencyTriage() {
                 </div>
               </div>
               <div className="mt-6 flex gap-2 relative z-10">
-                <button className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg text-sm font-medium transition-colors">
+                <button 
+                  onClick={() => setIsAssignModalOpen(true)}
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg text-sm font-medium transition-colors"
+                >
                   Assign Doctor
                 </button>
                 {currentUser?.role === 'doctor' && (
@@ -273,6 +278,8 @@ export default function EmergencyTriage() {
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
+
+      <AssignDoctorModal open={isAssignModalOpen} onOpenChange={setIsAssignModalOpen} />
     </div>
   );
 }

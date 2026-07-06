@@ -45,15 +45,21 @@ export const useHospitalStore = create<ExtendedHospitalState>()(
           supabase.from('medical_records').select('*'),
           supabase.from('invoices').select('*'),
         ]);
+        const currentPatients = get().patients;
+        const currentAppointments = get().appointments;
 
-        const mapPatient = (p: any) => ({
-          ...p,
-          bloodGroup: p.blood_group,
-          lastVisit: p.last_visit,
-          assignedDoctorId: p.assigned_doctor_id,
-          insuranceProvider: p.insurance_provider,
-          insuranceId: p.insurance_id
-        });
+        const mapPatient = (p: any) => {
+          const existing = currentPatients.find(ep => ep.id === p.id);
+          return {
+            ...p,
+            bloodGroup: p.blood_group,
+            lastVisit: p.last_visit,
+            assignedDoctorId: p.assigned_doctor_id,
+            insuranceProvider: p.insurance_provider,
+            insuranceId: p.insurance_id,
+            emergencyInstructions: existing?.emergencyInstructions || undefined
+          };
+        };
 
         const mapDoctor = (d: any) => {
           const rawDays = d.available_days || [];
@@ -72,9 +78,11 @@ export const useHospitalStore = create<ExtendedHospitalState>()(
         };
 
         const mapAppointment = (a: any) => {
+          const existing = currentAppointments.find(ea => ea.id === a.id);
           let parsedNotes = a.notes;
           let remarks = a.remarks;
           let prescription = a.prescription;
+          let tokenNumber = existing?.tokenNumber || a.tokenNumber;
           
           if (a.notes && typeof a.notes === 'string' && a.notes.startsWith('{')) {
             try {
@@ -82,9 +90,15 @@ export const useHospitalStore = create<ExtendedHospitalState>()(
               if (parsed.notes !== undefined) parsedNotes = parsed.notes;
               if (parsed.remarks !== undefined) remarks = parsed.remarks;
               if (parsed.prescription !== undefined) prescription = parsed.prescription;
+              if (parsed.tokenNumber !== undefined) tokenNumber = parsed.tokenNumber;
             } catch (e) {
               // Not JSON, just use as regular notes
             }
+          }
+
+          // If local state has a token but DB doesn't (because it failed to save), prioritize local.
+          if (existing?.tokenNumber && !tokenNumber) {
+            tokenNumber = existing.tokenNumber;
           }
 
           return {
@@ -93,7 +107,8 @@ export const useHospitalStore = create<ExtendedHospitalState>()(
             doctorId: a.doctor_id,
             notes: parsedNotes,
             remarks: remarks,
-            prescription: prescription
+            prescription: prescription,
+            tokenNumber: tokenNumber
           };
         };
 
@@ -340,11 +355,13 @@ export const useHospitalStore = create<ExtendedHospitalState>()(
       const combinedNotes = JSON.stringify({
         notes: data.notes ?? currentAppt?.notes,
         remarks: data.remarks ?? currentAppt?.remarks,
-        prescription: data.prescription ?? currentAppt?.prescription
+        prescription: data.prescription ?? currentAppt?.prescription,
+        tokenNumber: data.tokenNumber ?? currentAppt?.tokenNumber
       });
       updateData.notes = combinedNotes;
       delete updateData.remarks;
       delete updateData.prescription;
+      delete updateData.tokenNumber;
 
       const { error } = await supabase.from('appointments').update(updateData).eq('id', id);
       if (error) console.error('Error updating appointment:', error);

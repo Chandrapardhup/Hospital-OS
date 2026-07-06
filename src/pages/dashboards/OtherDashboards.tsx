@@ -5,9 +5,12 @@ import { BookAppointmentModal } from '../../components/appointments/BookAppointm
 import { useTranslation } from '../../translations';
 import { useHospitalStore } from '../../store/useHospitalStore';
 
+import { AssignDoctorModal } from '../../components/AssignDoctorModal';
+
 export function ReceptionDashboard() {
   const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
   const [isBookModalOpen, setIsBookModalOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const { t } = useTranslation();
   
@@ -47,7 +50,13 @@ export function ReceptionDashboard() {
           <h1 className="text-3xl font-bold text-foreground tracking-tight">Reception Desk</h1>
           <p className="text-muted-foreground mt-1">Manage patient intake, token queues, and front-desk operations.</p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
+          <button 
+            onClick={() => setIsAssignModalOpen(true)}
+            className="px-4 py-2 border border-blue-500/50 hover:bg-blue-500/10 text-blue-500 font-medium rounded-xl transition-colors flex items-center gap-2"
+          >
+            <Users className="w-4 h-4" /> Assign Doctor
+          </button>
           <button 
             onClick={() => setIsBookModalOpen(true)}
             className="px-4 py-2 border border-border hover:bg-muted text-foreground font-medium rounded-xl transition-colors flex items-center gap-2"
@@ -199,6 +208,7 @@ export function ReceptionDashboard() {
 
       <AddPatientDrawer open={isAddDrawerOpen} onOpenChange={setIsAddDrawerOpen} />
       <BookAppointmentModal open={isBookModalOpen} onOpenChange={setIsBookModalOpen} />
+      <AssignDoctorModal open={isAssignModalOpen} onOpenChange={setIsAssignModalOpen} />
     </div>
   );
 }
