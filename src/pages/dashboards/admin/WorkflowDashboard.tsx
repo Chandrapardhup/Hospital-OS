@@ -10,44 +10,44 @@ import type { WorkflowStatus } from '../../../types/hospital';
 const WORKFLOW_TEMPLATES = [
   {
     id: 'wf-1',
-    name: 'Emergency Admission Protocol',
+    name: 'Mass Emergency Intake',
     icon: Activity,
-    description: 'Instantly coordinates emergency response by alerting trauma team, securing an ICU bed, and notifying reception.',
+    description: 'Simulates a mass casualty event. Instantly registers 3 new emergency patients and queues them up for doctors.',
     color: 'text-red-500',
     bg: 'bg-red-500/10',
     steps: [
-      { name: 'Update Emergency Queue', status: 'Pending', agent: 'Reception Agent' },
-      { name: 'Assign Available Trauma Doctor', status: 'Pending', agent: 'Doctor Assistant Agent' },
-      { name: 'Reserve ICU Bed', status: 'Pending', agent: 'Facilities Agent' },
-      { name: 'Alert Shift Administrator', status: 'Pending', agent: 'Supervisor Agent' }
+      { name: 'Register Patients', status: 'Pending', agent: 'Reception Agent' },
+      { name: 'Assign Triage Priority', status: 'Pending', agent: 'Triage AI' },
+      { name: 'Book Immediate Appointments', status: 'Pending', agent: 'Scheduling Agent' },
+      { name: 'Alert All Doctors', status: 'Pending', agent: 'Notification Agent' }
     ]
   },
   {
     id: 'wf-2',
-    name: 'Stat Lab Report Dispatch',
+    name: 'Autonomous Inventory Restock',
     icon: TestTube,
-    description: 'Automatically processes high-priority lab results and routes them directly to the attending physician for review.',
+    description: 'Scans all inventory for low-stock items and instantly restocks everything back up to 500 units.',
     color: 'text-blue-500',
     bg: 'bg-blue-500/10',
     steps: [
-      { name: 'Retrieve Lab Results', status: 'Pending', agent: 'Laboratory System' },
-      { name: 'Flag Abnormal Values', status: 'Pending', agent: 'Diagnostic AI' },
-      { name: 'Page Attending Doctor', status: 'Pending', agent: 'Notification Agent' },
-      { name: 'Log in Medical Record', status: 'Pending', agent: 'Records Agent' }
+      { name: 'Audit Global Inventory', status: 'Pending', agent: 'Inventory AI' },
+      { name: 'Identify Low Stock', status: 'Pending', agent: 'Inventory AI' },
+      { name: 'Process Supplier Orders', status: 'Pending', agent: 'Procurement Agent' },
+      { name: 'Update Stock Quantities', status: 'Pending', agent: 'Database Agent' }
     ]
   },
   {
     id: 'wf-3',
-    name: 'Pre-Surgery Clearance Protocol',
+    name: 'End of Day Revenue Settlement',
     icon: Scissors,
-    description: 'Runs a comprehensive checklist for surgical candidates, verifying consent, blood type availability, and fasting status.',
-    color: 'text-purple-500',
-    bg: 'bg-purple-500/10',
+    description: 'Generates 5 massive new "Paid" invoices for surgeries, instantly spiking the hospital\'s total revenue.',
+    color: 'text-emerald-500',
+    bg: 'bg-emerald-500/10',
     steps: [
-      { name: 'Verify Surgical Consent', status: 'Pending', agent: 'Compliance Agent' },
-      { name: 'Check Blood Bank Reserves', status: 'Pending', agent: 'Inventory Agent' },
-      { name: 'Confirm Fasting Status', status: 'Pending', agent: 'Nurse Station' },
-      { name: 'Clear for OR Transfer', status: 'Pending', agent: 'Surgical Coordinator' }
+      { name: 'Audit Daily Procedures', status: 'Pending', agent: 'Billing Agent' },
+      { name: 'Generate Surgery Invoices', status: 'Pending', agent: 'Billing Agent' },
+      { name: 'Process Payments', status: 'Pending', agent: 'Payment Gateway Agent' },
+      { name: 'Sync Revenue Analytics', status: 'Pending', agent: 'Analytics Agent' }
     ]
   }
 ];

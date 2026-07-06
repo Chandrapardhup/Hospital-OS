@@ -71,72 +71,68 @@ export const workflowService = {
       // Perform actual side-effects based on the workflow name
       const store = (await import('../store/useHospitalStore')).useHospitalStore.getState();
       
-      if (name === 'Emergency Admission Protocol') {
-        const newPatientId = `pat_emg_${Date.now()}`;
-        await store.addPatient({
-          id: newPatientId,
-          name: 'Jane Doe (Emergency)',
-          email: 'emergency@example.com',
-          phone: '555-0100',
-          dob: '1985-06-15',
-          gender: 'Female',
-          bloodGroup: 'O-',
-          address: 'Ambulance Intake',
-          status: 'Emergency'
-        });
+      if (name === 'Mass Emergency Intake') {
+        const doc = store.doctors.length > 0 ? store.doctors[0] : null;
         
-        if (store.doctors.length > 0) {
-          await store.addAppointment({
-            id: `apt_emg_${Date.now()}`,
-            patientId: newPatientId,
-            doctorId: store.doctors[0].id,
-            date: new Date().toISOString().split('T')[0],
-            time: 'Immediate',
-            type: 'Emergency',
-            status: 'Waiting',
-            symptoms: 'Severe trauma, immediate attention required.'
-          });
-        }
-        
-        toast.success('Patient "Jane Doe (Emergency)" added to system & assigned to doctor.');
-      } 
-      
-      else if (name === 'Stat Lab Report Dispatch') {
-        if (store.patients.length > 0) {
-          const patient = store.patients[0];
-          await store.addMedicalRecord({
-            id: `rec_lab_${Date.now()}`,
-            patientId: patient.id,
-            title: 'STAT Complete Blood Count',
-            sub: 'Critical Values Flagged',
-            fileUrl: '#'
+        for (let i = 1; i <= 3; i++) {
+          const newPatientId = `pat_emg_${Date.now()}_${i}`;
+          await store.addPatient({
+            id: newPatientId,
+            name: `Mass Casualty Patient ${i}`,
+            email: `trauma${i}@example.com`,
+            phone: '555-0000',
+            dob: '1990-01-01',
+            gender: 'Unknown',
+            bloodGroup: 'O-',
+            address: 'Incident Site',
+            status: 'Emergency'
           });
           
-          if (patient.assignedDoctorId) {
-            await store.addNotification({
-              userId: patient.assignedDoctorId,
-              title: 'CRITICAL LAB RESULTS',
-              message: `Critical values detected in STAT labs for ${patient.name}. Immediate review required.`,
-              type: 'error'
+          if (doc) {
+            await store.addAppointment({
+              id: `apt_emg_${Date.now()}_${i}`,
+              patientId: newPatientId,
+              doctorId: doc.id,
+              date: new Date().toISOString().split('T')[0],
+              time: 'Immediate',
+              type: 'Emergency',
+              status: 'Waiting',
+              symptoms: 'Mass casualty trauma incident.'
             });
           }
-          
-          toast.success(`STAT Lab Results attached to ${patient.name}'s record.`);
+        }
+        toast.success('3 Emergency Patients admitted and queued instantly.');
+      } 
+      
+      else if (name === 'Autonomous Inventory Restock') {
+        let restockedCount = 0;
+        store.inventory.forEach(item => {
+          if (item.quantity <= item.min_stock_level) {
+            store.updateInventoryItem(item.id, { quantity: 500, status: 'In Stock' });
+            restockedCount++;
+          }
+        });
+        
+        if (restockedCount > 0) {
+          toast.success(`${restockedCount} low-stock inventory items were automatically restocked to 500 units.`);
+        } else {
+          toast.info('All inventory was already sufficiently stocked.');
         }
       }
       
-      else if (name === 'Pre-Surgery Clearance Protocol') {
-        // Decrease blood inventory for surgery prep
-        const bloodBags = store.inventory.find(i => i.name.toLowerCase().includes('blood') || i.category.toLowerCase().includes('blood'));
-        if (bloodBags && bloodBags.quantity > 0) {
-          store.updateInventoryItem(bloodBags.id, { quantity: bloodBags.quantity - 1 });
-          toast.info(`Inventory: 1 unit of Blood reserved for surgery.`);
+      else if (name === 'End of Day Revenue Settlement') {
+        for (let i = 1; i <= 5; i++) {
+          await store.addInvoice({
+            id: `INV-AUTO-${Date.now()}-${i}`,
+            patientId: store.patients.length > 0 ? store.patients[0].id : 'N/A',
+            doctorId: store.doctors.length > 0 ? store.doctors[0].id : 'N/A',
+            amount: 25000 + Math.floor(Math.random() * 50000), // Massive revenue spike (25k-75k)
+            status: 'Paid',
+            date: new Date().toISOString(),
+            items: [{ description: 'Complex Surgical Procedure', quantity: 1, price: 50000 }]
+          });
         }
-        
-        if (store.patients.length > 0) {
-          await store.updatePatient(store.patients[0].id, { status: 'Admitted' });
-          toast.success(`Patient ${store.patients[0].name} status updated to Admitted for surgery.`);
-        }
+        toast.success('5 major surgery invoices have been paid, drastically spiking hospital revenue.');
       }
     }
   }
