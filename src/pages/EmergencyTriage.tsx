@@ -134,29 +134,21 @@ export default function EmergencyTriage() {
                   <span className="font-mono">{new Date(patient.createdAt).toLocaleTimeString()}</span>
                 </div>
               </div>
-              <div className="mt-6 flex gap-2 relative z-10">
+              <div className="mt-6 flex flex-col gap-2 relative z-10">
                 <button 
                   onClick={() => setIsAssignModalOpen(true)}
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg text-sm font-medium transition-colors"
+                  className="w-full bg-muted hover:bg-muted/80 text-foreground py-2 rounded-lg text-sm font-medium transition-colors border border-border"
                 >
                   Assign Doctor
                 </button>
                 {currentUser?.role === 'doctor' && (
                   <button 
                     onClick={() => { setSelectedPatient(patient); setIsInstructionOpen(true); }}
-                    className="p-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-foreground group relative"
-                    title="Doctor Instructions"
+                    className="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 py-2 rounded-lg text-sm font-bold transition-colors shadow-sm"
                   >
-                    <Bot className="w-5 h-5 group-hover:text-primary transition-colors" />
+                    <AlertTriangle className="w-4 h-4" /> Live Instructions
                   </button>
                 )}
-                <button 
-                  onClick={() => { setSelectedPatient(patient); setIsVitalsOpen(true); }}
-                  className="p-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-foreground group relative"
-                  title="View Patient Vitals"
-                >
-                  <Activity className="w-5 h-5 group-hover:text-red-500 transition-colors" />
-                </button>
               </div>
 
               {/* Instructions Chat Display */}
@@ -285,63 +277,6 @@ export default function EmergencyTriage() {
       </Dialog.Root>
 
       <AssignDoctorModal open={isAssignModalOpen} onOpenChange={setIsAssignModalOpen} />
-
-      <Dialog.Root open={isVitalsOpen} onOpenChange={setIsVitalsOpen}>
-        <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50" />
-          <Dialog.Content className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-border bg-background p-6 shadow-lg duration-200 sm:rounded-xl">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold flex items-center gap-2">
-                <Activity className="w-5 h-5 text-red-500" />
-                Live Vitals: {selectedPatient?.name}
-              </h2>
-              <Dialog.Close className="p-2 hover:bg-muted rounded-full transition-colors">
-                <X className="w-5 h-5" />
-              </Dialog.Close>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-muted/50 p-4 rounded-xl border border-border/50">
-                <div className="text-sm text-muted-foreground mb-1">Heart Rate</div>
-                <div className="text-3xl font-bold text-red-500 flex items-end gap-2">
-                  112 <span className="text-sm font-normal text-muted-foreground mb-1">bpm</span>
-                </div>
-                <div className="text-xs text-red-400 mt-2">↑ Elevated</div>
-              </div>
-              <div className="bg-muted/50 p-4 rounded-xl border border-border/50">
-                <div className="text-sm text-muted-foreground mb-1">Blood Pressure</div>
-                <div className="text-3xl font-bold text-blue-500 flex items-end gap-2">
-                  145/90 <span className="text-sm font-normal text-muted-foreground mb-1">mmHg</span>
-                </div>
-                <div className="text-xs text-amber-500 mt-2">! Hypertension Stg 2</div>
-              </div>
-              <div className="bg-muted/50 p-4 rounded-xl border border-border/50">
-                <div className="text-sm text-muted-foreground mb-1">SpO2</div>
-                <div className="text-3xl font-bold text-emerald-500 flex items-end gap-2">
-                  94 <span className="text-sm font-normal text-muted-foreground mb-1">%</span>
-                </div>
-                <div className="text-xs text-emerald-400 mt-2">✓ Stable</div>
-              </div>
-              <div className="bg-muted/50 p-4 rounded-xl border border-border/50">
-                <div className="text-sm text-muted-foreground mb-1">Temperature</div>
-                <div className="text-3xl font-bold text-amber-500 flex items-end gap-2">
-                  101.2 <span className="text-sm font-normal text-muted-foreground mb-1">°F</span>
-                </div>
-                <div className="text-xs text-amber-500 mt-2">↑ Fever</div>
-              </div>
-            </div>
-
-            <div className="mt-4 flex justify-end">
-              <button 
-                onClick={() => setIsVitalsOpen(false)}
-                className="px-4 py-2 bg-muted hover:bg-muted/80 text-foreground font-medium rounded-lg transition-colors"
-              >
-                Close Vitals
-              </button>
-            </div>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
 
     </div>
   );
