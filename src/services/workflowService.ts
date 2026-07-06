@@ -85,7 +85,8 @@ export const workflowService = {
             gender: 'Unknown',
             bloodGroup: 'O-',
             address: 'Incident Site',
-            status: 'Emergency'
+            status: 'Emergency',
+            createdAt: new Date().toISOString()
           });
           
           if (doc) {

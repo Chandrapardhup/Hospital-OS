@@ -68,6 +68,7 @@ export const useHospitalStore = create<ExtendedHospitalState>()(
           const existing = currentPatients.find(ep => ep.id === p.id);
           return {
             ...p,
+            createdAt: p.created_at || p.createdAt || new Date().toISOString(),
             bloodGroup: p.blood_group,
             lastVisit: p.last_visit,
             assignedDoctorId: p.assigned_doctor_id,
