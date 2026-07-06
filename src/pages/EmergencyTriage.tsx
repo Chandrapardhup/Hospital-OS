@@ -141,14 +141,12 @@ export default function EmergencyTriage() {
                 >
                   Assign Doctor
                 </button>
-                {currentUser?.role === 'doctor' && (
-                  <button 
-                    onClick={() => { setSelectedPatient(patient); setIsInstructionOpen(true); }}
-                    className="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 py-2 rounded-lg text-sm font-bold transition-colors shadow-sm"
-                  >
-                    <AlertTriangle className="w-4 h-4" /> Live Instructions
-                  </button>
-                )}
+                <button 
+                  onClick={() => { setSelectedPatient(patient); setIsInstructionOpen(true); }}
+                  className="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 py-2 rounded-lg text-sm font-bold transition-colors shadow-sm"
+                >
+                  <AlertTriangle className="w-4 h-4" /> Live Instructions
+                </button>
               </div>
 
               {/* Instructions Chat Display */}
@@ -245,20 +243,20 @@ export default function EmergencyTriage() {
                     addNotification({
                       userId: 'reception', // Send to general reception
                       title: `EMERGENCY INSTRUCTION: ${selectedPatient.name}`,
-                      message: `Dr. ${currentUser.name}: ${instructions}`,
+                      message: `${currentUser.role === 'doctor' ? 'Dr. ' : ''}${currentUser.name}: ${instructions}`,
                       type: 'error'
                     });
                     addNotification({
                       userId: 'nurse', // Send to general nurse staff
                       title: `EMERGENCY INSTRUCTION: ${selectedPatient.name}`,
-                      message: `Dr. ${currentUser.name}: ${instructions}`,
+                      message: `${currentUser.role === 'doctor' ? 'Dr. ' : ''}${currentUser.name}: ${instructions}`,
                       type: 'error'
                     });
 
                     // Add instruction to patient's record
                     const updatedInstructions = [
                       ...(selectedPatient.emergencyInstructions || []),
-                      { time: new Date().toISOString(), text: instructions, by: `Dr. ${currentUser.name}` }
+                      { time: new Date().toISOString(), text: instructions, by: `${currentUser.role === 'doctor' ? 'Dr. ' : ''}${currentUser.name}` }
                     ];
                     updatePatient(selectedPatient.id, { emergencyInstructions: updatedInstructions });
 
