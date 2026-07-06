@@ -241,26 +241,25 @@ export default function LoginPage() {
     return true;
   });
 
-  const [splashPhase, setSplashPhase] = useState<'canvas' | 'logo' | 'done'>('canvas');
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
+  const [logoPhase, setLogoPhase] = useState(false);
 
   useEffect(() => {
     if (!showSplash) return;
     sessionStorage.setItem('hospitalos_splash_shown', 'true');
 
-    // Transition phases
-    const t1 = setTimeout(() => setSplashPhase('logo'), 6500); // 6.5s Canvas finishes, show logo
-    const t2 = setTimeout(() => setShowSplash(false), 9500);   // 9.5s total splash time
+    const tLogo = setTimeout(() => setLogoPhase(true), 3500);
+    const tEnd = setTimeout(() => setShowSplash(false), 5500);
 
     return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
+      clearTimeout(tLogo);
+      clearTimeout(tEnd);
     };
   }, [showSplash]);
 
-  // High-Performance Canvas Particle System
+  // High-Performance DNA -> Heartbeat Morphing System
   useEffect(() => {
-    if (splashPhase !== 'canvas') return;
+    if (!showSplash) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -281,22 +280,28 @@ export default function LoginPage() {
     window.addEventListener('resize', handleResize);
 
     const isMobile = width < 768;
-    const numParticles = isMobile ? 1200 : 3000; // Less particles on mobile for performance and better visual density
+    const numParticles = isMobile ? 1500 : 4000;
     const particles: any[] = [];
     
-    // Initialize Particles
+    // Math helpers for DNA and Heartbeat
+    const dnaRadiusX = isMobile ? 80 : 150;
+    
     for (let i = 0; i < numParticles; i++) {
+      // Random starting positions far away
       particles.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
+        x: (Math.random() - 0.5) * width * 3 + width / 2,
+        y: (Math.random() - 0.5) * height * 3 + height / 2,
         baseX: 0,
         baseY: 0,
-        color: i % 2 === 0 ? '#22d3ee' : '#a855f7', // Cyan and Purple
-        size: isMobile ? Math.random() * 1.2 + 0.3 : Math.random() * 1.5 + 0.5, // Slightly smaller on mobile
+        color: i % 2 === 0 ? '#22d3ee' : '#a855f7',
+        size: Math.random() * 1.5 + 0.5,
+        phaseOffset: Math.random() * Math.PI * 2, // Used for DNA positioning
+        layer: Math.random(), // 0 to 1 along the DNA strand
+        strand: i % 2, // 0 or 1 for double helix
         vx: 0,
         vy: 0,
-        angle: Math.random() * Math.PI * 2,
-        radius: Math.random() * (isMobile ? 250 : 400) + (isMobile ? 50 : 100),
+        exploded: false,
+        currentSize: 0
       });
     }
 
@@ -307,53 +312,114 @@ export default function LoginPage() {
       const elapsed = (Date.now() - startTime) / 1000; // in seconds
 
       // Dark trail effect for smooth motion blur
-      ctx.fillStyle = 'rgba(2, 0, 8, 0.15)';
+      ctx.fillStyle = 'rgba(2, 0, 8, 0.2)';
       ctx.fillRect(0, 0, width, height);
 
       const cx = width / 2;
       const cy = height / 2;
       
-      const isMobileNow = window.innerWidth < 768;
+      const phase = elapsed < 2 ? 'dna' : elapsed < 3.5 ? 'heartbeat' : 'explode';
+      
+      // Global rotation for DNA
+      const globalRot = elapsed * 1.5;
 
       for (let i = 0; i < numParticles; i++) {
         const p = particles[i];
         
         let targetX = p.x;
         let targetY = p.y;
-        let speed = 0.05;
+        let speed = 0.08;
 
-        if (elapsed < 3) {
-          // PHASE 1: Silk Vortex (0s - 3s) - Slow, smooth swirling
-          p.angle += 0.02;
-          p.radius -= isMobileNow ? 0.3 : 0.5;
-          const minRadius = isMobileNow ? 30 : 50;
-          const maxRadius = isMobileNow ? 250 : 400;
+        if (phase === 'dna') {
+          // Phase 1: DNA Helix (Rotated 90 degrees to be horizontal)
+          const xPos = (p.layer - 0.5) * (isMobile ? width * 0.8 : width * 0.6); // Spread horizontally
+          const strandOffset = p.strand === 0 ? 0 : Math.PI;
           
-          if (p.radius < minRadius) p.radius = maxRadius;
-          targetX = cx + Math.cos(p.angle) * p.radius;
+          // Helix math: y = sin(x + time), z = cos(x + time)
+          // Speed up the rotation slightly for more visual impact
+          const angle = p.layer * Math.PI * 6 + (elapsed * 2.5) + strandOffset; 
+          const yPos = Math.sin(angle) * dnaRadiusX;
+          const zPos = Math.cos(angle) * dnaRadiusX;
           
-          // Adjust vertical sine wave for mobile so it doesn't stretch too far
-          const waveAmplitude = isMobileNow ? 15 : 30;
-          targetY = cy + Math.sin(p.angle) * p.radius + Math.sin(elapsed * 4 + i) * waveAmplitude;
-          speed = 0.08;
-        } else {
-          // PHASE 2: Glowing Halo / Eclipse (3s onwards)
-          p.angle += 0.04;
+          // Add 3D perspective sizing based on Z
+          const scale = (zPos + dnaRadiusX * 2) / (dnaRadiusX * 3);
+          p.currentSize = p.size * scale * 2;
           
-          // Dynamic halo radius based on screen size
-          const baseHaloRadius = isMobileNow ? 90 : 140;
-          const haloPulse = Math.sin(elapsed * 5 + i * 0.1) * (isMobileNow ? 8 : 15);
-          const haloRadius = baseHaloRadius + haloPulse; 
+          targetX = cx + xPos;
+          targetY = cy + yPos;
+          speed = 0.12; // Smoothly drift into place
           
-          targetX = cx + Math.cos(p.angle) * haloRadius;
-          targetY = cy + Math.sin(p.angle) * haloRadius;
-          
-          speed = 0.15;
-          
-          // Soften the color to look like a glowing aura
-          if (elapsed > 4) {
-            p.color = i % 2 === 0 ? 'rgba(34, 211, 238, 0.6)' : 'rgba(168, 85, 247, 0.6)';
+          // Add connecting rungs occasionally
+          if (i % 40 === 0) {
+             p.color = '#ffffff';
+          } else {
+             p.color = p.strand === 0 ? '#22d3ee' : '#a855f7';
           }
+
+        } else if (phase === 'heartbeat') {
+          // Phase 2: Heartbeat Line (Static clear shape)
+          const span = isMobile ? width * 0.9 : width * 0.6;
+          const localX = (p.layer - 0.5) * span;
+          targetX = cx + localX;
+          
+          // Heartbeat math (Static QRS complex in center)
+          let yOffset = 0;
+          
+          if (localX > -60 && localX <= -20) {
+             // Flat to Q dip
+             yOffset = ((localX + 60) / 40) * 30; // 0 to 30
+          } else if (localX > -20 && localX <= 0) {
+             // Q dip to R spike
+             yOffset = 30 - ((localX + 20) / 20) * 180; // 30 to -150
+          } else if (localX > 0 && localX <= 20) {
+             // R spike to S dip
+             yOffset = -150 + (localX / 20) * 200; // -150 to 50
+          } else if (localX > 20 && localX <= 60) {
+             // S dip back to flat
+             yOffset = 50 - ((localX - 20) / 40) * 50; // 50 to 0
+          } else if (localX > 80 && localX <= 140) {
+             // T wave
+             yOffset = -40 * Math.sin(((localX - 80) / 60) * Math.PI);
+          }
+          
+          // Add a sweeping highlight pulse across the heartbeat
+          const pulsePosition = ((elapsed - 2) / 1.5) * span - span/2; 
+          const distToPulse = Math.abs(localX - pulsePosition);
+          
+          if (distToPulse < (isMobile ? 30 : 60)) {
+             p.color = '#ffffff';
+             p.currentSize = p.size * 3;
+          } else {
+             // Dimmer standard color
+             p.color = p.strand === 0 ? '#0891b2' : '#7e22ce'; 
+             p.currentSize = p.size;
+          }
+          
+          targetY = cy + yOffset + (Math.random()-0.5)*3; // minimal fuzz for clean line
+          speed = 0.08; // Slower speed = much smoother, cinematic morph from DNA
+
+        } else {
+          // Phase 3: Explode / Disperse
+          if (!p.exploded) {
+            // Explode outwards from their current heartbeat position
+            const dx = p.x - cx;
+            const dy = p.y - cy;
+            const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+            
+            p.vx = (dx / dist) * (Math.random() * 40 + 20);
+            p.vy = (dy / dist) * (Math.random() * 40 + 20);
+            p.exploded = true;
+          }
+          
+          targetX = p.x + p.vx;
+          targetY = p.y + p.vy;
+          
+          // Add friction
+          p.vx *= 0.95;
+          p.vy *= 0.95;
+          
+          speed = 1; // Direct physics
+          p.currentSize *= 0.93; // Shrink away fast
         }
 
         // Apply easing to target
@@ -361,10 +427,12 @@ export default function LoginPage() {
         p.y += (targetY - p.y) * speed;
 
         // Draw particle
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
+        if (p.currentSize > 0.1) {
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.currentSize, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
 
       animationId = requestAnimationFrame(render);
@@ -376,62 +444,43 @@ export default function LoginPage() {
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationId);
     };
-  }, [splashPhase]);
+  }, [showSplash]);
 
   return (
     <>
-      {/* ═══════ CANVAS WEBGL-STYLE SPLASH SCREEN ═══════ */}
+      {/* ═══════ CINEMATIC SPLASH SCREEN ═══════ */}
       <AnimatePresence>
         {showSplash && (
           <motion.div
-            key="splash-container"
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1 }}
+            key="cinematic-splash"
+            exit={{ opacity: 0, filter: "blur(20px)" }}
+            transition={{ duration: 0.8 }}
             className="fixed inset-0 z-[200] bg-[#020008] flex items-center justify-center overflow-hidden"
           >
-            {/* Phase A: The Canvas Animation */}
-            <AnimatePresence>
-              {splashPhase === 'canvas' && (
-                <motion.canvas
-                  key="particle-canvas"
-                  ref={canvasRef}
-                  exit={{ opacity: 0, filter: "blur(20px)", scale: 1.2 }}
-                  transition={{ duration: 0.8 }}
-                  className="absolute inset-0 w-full h-full"
-                />
-              )}
-            </AnimatePresence>
+            {/* The Morphing Canvas */}
+            <canvas ref={canvasRef} className="absolute inset-0 w-full h-full z-10 pointer-events-none mix-blend-screen" />
 
-            {/* Phase B: The Glorious Logo Reveal */}
+            {/* Final Logo Reveal (Syncs with Explode Phase) */}
             <AnimatePresence>
-              {splashPhase === 'logo' && (
+              {logoPhase && (
                 <motion.div
-                  key="logo-reveal"
-                  initial={{ opacity: 0, filter: "blur(30px)", scale: 0.8 }}
-                  animate={{ opacity: 1, filter: "blur(0px)", scale: 1 }}
-                  exit={{ opacity: 0, filter: "blur(10px)", scale: 1.1 }}
-                  transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-                  className="relative z-10 flex flex-col items-center justify-center p-12 rounded-[3rem] bg-white/5 border border-white/10 backdrop-blur-3xl shadow-[0_0_80px_rgba(34,211,238,0.2)]"
+                  key="reveal"
+                  initial={{ opacity: 0, scale: 0.5, filter: "blur(20px)" }}
+                  animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, scale: 1.1 }}
+                  transition={{ duration: 1, type: "spring", bounce: 0.4 }}
+                  className="relative z-20 flex flex-col items-center justify-center"
                 >
-                  <motion.div 
-                    initial={{ x: "-150%", opacity: 0 }}
-                    animate={{ x: "200%", opacity: [0, 0.5, 0] }}
-                    transition={{ delay: 0.5, duration: 1.5, ease: "easeInOut" }}
-                    className="absolute inset-0 w-[200%] h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-45 pointer-events-none"
-                  />
-
-                  <div className="w-28 h-28 mb-6 rounded-3xl bg-black border border-cyan-400/40 flex items-center justify-center shadow-[0_0_50px_rgba(34,211,238,0.4)] relative overflow-hidden">
-                    <img src="/logo.png" alt="HospitalOS" className="w-16 h-16 object-contain filter drop-shadow-[0_0_15px_rgba(34,211,238,1)] relative z-10" />
+                  <div className="w-24 h-24 md:w-32 md:h-32 mb-6 rounded-3xl bg-black border border-cyan-400/40 flex items-center justify-center shadow-[0_0_60px_rgba(34,211,238,0.3)] relative overflow-hidden">
+                    <Activity className="w-12 h-12 md:w-16 md:h-16 text-cyan-400 filter drop-shadow-[0_0_20px_rgba(34,211,238,1)] relative z-10" />
                   </div>
 
-                  <h1 className="text-4xl md:text-5xl font-black tracking-[0.25em] text-white flex items-center justify-center uppercase mb-4">
+                  <h1 className="text-4xl md:text-6xl font-black tracking-[0.25em] text-white flex items-center justify-center uppercase mb-2">
                     Hospital<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">OS</span>
                   </h1>
                   
-                  <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
-                  
-                  <p className="text-xs text-cyan-200/60 tracking-[0.6em] font-medium uppercase mt-5 text-center">
-                    Intelligent Healthcare Engine
+                  <p className="text-xs md:text-sm text-cyan-200/60 tracking-[0.4em] font-medium uppercase mt-2 md:mt-4 text-center">
+                    Smarter. Faster. Better Care.
                   </p>
                 </motion.div>
               )}

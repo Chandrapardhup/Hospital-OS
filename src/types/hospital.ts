@@ -1,5 +1,5 @@
 export type Gender = 'Male' | 'Female' | 'Other';
-export type AppointmentStatus = 'Scheduled' | 'In Progress' | 'Completed' | 'Cancelled' | 'No Show';
+export type AppointmentStatus = 'Scheduled' | 'Waiting' | 'In Progress' | 'Completed' | 'Cancelled' | 'No Show';
 export type PatientStatus = 'Admitted' | 'Discharged' | 'Outpatient' | 'Emergency';
 
 export interface Patient {
@@ -33,6 +33,7 @@ export interface Doctor {
   availableTimes?: string[];
   status: 'Available' | 'On Leave' | 'In Surgery';
   avatar?: string;
+  patientsPerDay: number;
 }
 
 export interface Appointment {
@@ -43,6 +44,7 @@ export interface Appointment {
   time: string;
   type: 'Consultation' | 'Follow-up' | 'Checkup' | 'Emergency' | 'Admitting';
   status: AppointmentStatus;
+  tokenNumber?: string;
   symptoms?: string;
   notes?: string;
   remarks?: string;

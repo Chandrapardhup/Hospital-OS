@@ -197,6 +197,7 @@ function StatusBadge({ status }: { status: AppointmentStatus }) {
   let styles = "bg-muted/80 text-muted-foreground border-border";
   
   if (status === "In Progress") styles = "bg-primary/10 text-primary border-primary/20";
+  else if (status === "Waiting") styles = "bg-blue-500/10 text-blue-500 border-blue-500/20";
   else if (status === "Scheduled") styles = "bg-amber-500/10 text-amber-500 border-amber-500/20";
   else if (status === "Completed") styles = "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
   else if (status === "No Show" || status === "Cancelled") styles = "bg-red-500/10 text-red-500 border-red-500/20";

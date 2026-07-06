@@ -113,6 +113,61 @@ export default function DoctorDashboard() {
         </div>
       </div>
 
+      {/* LIVE WAITING ROOM PANEL */}
+      <div className="bg-blue-500/5 border border-blue-500/20 rounded-2xl p-6 backdrop-blur-md">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
+              <Users className="w-5 h-5 text-blue-500" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-foreground">Live Waiting Room</h2>
+              <p className="text-sm text-muted-foreground">Patients currently checked in and waiting</p>
+            </div>
+          </div>
+          <div className="px-4 py-2 bg-blue-500/10 text-blue-500 rounded-full text-sm font-bold border border-blue-500/20">
+            {myAppointments.filter(a => a.status === 'Waiting' && a.date === todayStr).length} Waiting
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {myAppointments.filter(a => a.status === 'Waiting' && a.date === todayStr).length > 0 ? (
+            myAppointments
+              .filter(a => a.status === 'Waiting' && a.date === todayStr)
+              .map(appointment => (
+              <div key={appointment.id} className="bg-card/50 border border-border p-4 rounded-xl flex flex-col gap-3 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/10 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-150"></div>
+                
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-bold text-foreground text-lg">{getPatientName(appointment.patientId)}</h4>
+                    <p className="text-xs text-muted-foreground font-mono">{appointment.time}</p>
+                  </div>
+                  {appointment.tokenNumber && (
+                    <div className="px-3 py-1 bg-blue-500 text-white rounded-lg font-mono font-bold shadow-lg shadow-blue-500/30">
+                      {appointment.tokenNumber}
+                    </div>
+                  )}
+                </div>
+                
+                <button 
+                  onClick={() => {
+                    useHospitalStore.getState().updateAppointment(appointment.id, { status: 'In Progress' });
+                  }}
+                  className="w-full mt-2 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-colors shadow-lg shadow-blue-500/20"
+                >
+                  Call Next (In Progress)
+                </button>
+              </div>
+            ))
+          ) : (
+            <div className="col-span-full py-8 text-center text-muted-foreground bg-background/50 rounded-xl border border-border/50 border-dashed">
+              Waiting room is empty. No checked-in patients.
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="bg-card/30 border border-border rounded-2xl backdrop-blur-md overflow-hidden mt-6">
         <div className="p-4 border-b border-border/50 flex items-center justify-between">
           <div className="relative w-96">
@@ -264,6 +319,7 @@ function StatusBadge({ status }: { status: AppointmentStatus }) {
   let styles = "bg-muted/80 text-muted-foreground border-border";
   
   if (status === "In Progress") styles = "bg-primary/10 text-primary border-primary/20";
+  else if (status === "Waiting") styles = "bg-blue-500/10 text-blue-500 border-blue-500/20";
   else if (status === "Scheduled") styles = "bg-amber-500/10 text-amber-500 border-amber-500/20";
 
   else if (status === "Completed") styles = "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
