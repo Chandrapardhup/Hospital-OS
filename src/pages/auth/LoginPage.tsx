@@ -124,7 +124,8 @@ export default function LoginPage() {
           consultationFee: data.consultationFee || 100,
           availableDays: ['Monday', 'Wednesday', 'Friday'],
           status: 'Available',
-          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random`
+          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random`,
+          patientsPerDay: 20
         });
         
         addNotification({
