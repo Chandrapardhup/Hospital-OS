@@ -18,6 +18,7 @@ export interface Patient {
   insuranceProvider?: string;
   insuranceId?: string;
   createdAt: string;
+  emergencyInstructions?: { time: string; text: string; by: string }[];
 }
 
 export interface Doctor {

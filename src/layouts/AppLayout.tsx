@@ -162,7 +162,7 @@ export default function AppLayout() {
                 <button 
                   onClick={() => {
                     setDismissedEmergencies([...dismissedEmergencies, emergency.id]);
-                    navigate('/doctor');
+                    navigate('/emergency');
                   }}
                   className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-3 text-xs rounded-lg transition-colors text-center"
                 >

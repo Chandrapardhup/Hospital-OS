@@ -4,9 +4,11 @@ import { useHospitalStore } from '../store/useHospitalStore';
 import { useTranslation } from '../translations';
 import { AIService } from '../services/AIService';
 import * as Dialog from '@radix-ui/react-dialog';
+import { useAuthStore } from '../store/useAuthStore';
 
 export default function EmergencyTriage() {
   const { t } = useTranslation();
+  const currentUser = useAuthStore(state => state.user);
   const patients = useHospitalStore(state => state.patients);
   const addNotification = useHospitalStore(state => state.addNotification);
   const updatePatient = useHospitalStore(state => state.updatePatient);
@@ -133,17 +135,39 @@ export default function EmergencyTriage() {
                 <button className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg text-sm font-medium transition-colors">
                   Assign Doctor
                 </button>
-                <button 
-                  onClick={() => { setSelectedPatient(patient); setIsInstructionOpen(true); }}
-                  className="p-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-foreground group relative"
-                  title="Doctor Instructions"
-                >
-                  <Bot className="w-5 h-5 group-hover:text-primary transition-colors" />
-                </button>
+                {currentUser?.role === 'doctor' && (
+                  <button 
+                    onClick={() => { setSelectedPatient(patient); setIsInstructionOpen(true); }}
+                    className="p-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-foreground group relative"
+                    title="Doctor Instructions"
+                  >
+                    <Bot className="w-5 h-5 group-hover:text-primary transition-colors" />
+                  </button>
+                )}
                 <button className="p-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-foreground">
                   <Activity className="w-5 h-5" />
                 </button>
               </div>
+
+              {/* Instructions Chat Display */}
+              {patient.emergencyInstructions && patient.emergencyInstructions.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-border/50 relative z-10">
+                  <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <Activity className="w-3 h-3" /> Live Instructions
+                  </h4>
+                  <div className="space-y-2 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
+                    {patient.emergencyInstructions.map((inst, idx) => (
+                      <div key={idx} className="bg-background/50 rounded-lg p-2 text-sm border border-border/50">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-bold text-primary text-xs">{inst.by}</span>
+                          <span className="text-[10px] text-muted-foreground">{new Date(inst.time).toLocaleTimeString()}</span>
+                        </div>
+                        <p className="text-foreground">{inst.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ))
         )}
@@ -215,19 +239,27 @@ export default function EmergencyTriage() {
               />
               <button 
                 onClick={() => {
-                  if (selectedPatient && instructions) {
+                  if (selectedPatient && instructions && currentUser) {
                     addNotification({
                       userId: 'reception', // Send to general reception
                       title: `EMERGENCY INSTRUCTION: ${selectedPatient.name}`,
-                      message: `Doctor Instructions: ${instructions}`,
+                      message: `Dr. ${currentUser.name}: ${instructions}`,
                       type: 'error'
                     });
                     addNotification({
                       userId: 'nurse', // Send to general nurse staff
                       title: `EMERGENCY INSTRUCTION: ${selectedPatient.name}`,
-                      message: `Doctor Instructions: ${instructions}`,
+                      message: `Dr. ${currentUser.name}: ${instructions}`,
                       type: 'error'
                     });
+
+                    // Add instruction to patient's record
+                    const updatedInstructions = [
+                      ...(selectedPatient.emergencyInstructions || []),
+                      { time: new Date().toISOString(), text: instructions, by: `Dr. ${currentUser.name}` }
+                    ];
+                    updatePatient(selectedPatient.id, { emergencyInstructions: updatedInstructions });
+
                     setIsInstructionOpen(false);
                     setInstructions('');
                   }
@@ -235,7 +267,7 @@ export default function EmergencyTriage() {
                 disabled={!instructions}
                 className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl transition-colors disabled:opacity-50"
               >
-                Broadcast to Staff
+                Send Instructions
               </button>
             </div>
           </Dialog.Content>
