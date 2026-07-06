@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertTriangle, Plus, HeartPulse, Activity, Bot, Loader2 } from 'lucide-react';
+import { AlertTriangle, Plus, HeartPulse, Activity, Bot, Loader2, X } from 'lucide-react';
 import { useHospitalStore } from '../store/useHospitalStore';
 import { useTranslation } from '../translations';
 import { AIService } from '../services/AIService';
