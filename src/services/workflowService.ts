@@ -82,7 +82,7 @@ export const workflowService = {
             email: `trauma${i}@example.com`,
             phone: '555-0000',
             dob: '1990-01-01',
-            gender: 'Unknown',
+            gender: 'Other',
             bloodGroup: 'O-',
             address: 'Incident Site',
             status: 'Emergency',
@@ -130,7 +130,7 @@ export const workflowService = {
             amount: 25000 + Math.floor(Math.random() * 50000), // Massive revenue spike (25k-75k)
             status: 'Paid',
             date: new Date().toISOString(),
-            items: [{ description: 'Complex Surgical Procedure', quantity: 1, price: 50000 }]
+            items: [{ description: 'Complex Surgical Procedure', cost: 50000 }]
           });
         }
         toast.success('5 major surgery invoices have been paid, drastically spiking hospital revenue.');

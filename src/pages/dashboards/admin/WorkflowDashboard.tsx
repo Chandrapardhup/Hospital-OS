@@ -16,10 +16,10 @@ const WORKFLOW_TEMPLATES = [
     color: 'text-red-500',
     bg: 'bg-red-500/10',
     steps: [
-      { name: 'Register Patients', status: 'Pending', agent: 'Reception Agent' },
-      { name: 'Assign Triage Priority', status: 'Pending', agent: 'Triage AI' },
-      { name: 'Book Immediate Appointments', status: 'Pending', agent: 'Scheduling Agent' },
-      { name: 'Alert All Doctors', status: 'Pending', agent: 'Notification Agent' }
+      { name: 'Register Patients', status: 'Pending' as any, agent: 'Reception Agent' },
+      { name: 'Assign Triage Priority', status: 'Pending' as any, agent: 'Triage AI' },
+      { name: 'Book Immediate Appointments', status: 'Pending' as any, agent: 'Scheduling Agent' },
+      { name: 'Alert All Doctors', status: 'Pending' as any, agent: 'Notification Agent' }
     ]
   },
   {
@@ -30,10 +30,10 @@ const WORKFLOW_TEMPLATES = [
     color: 'text-blue-500',
     bg: 'bg-blue-500/10',
     steps: [
-      { name: 'Audit Global Inventory', status: 'Pending', agent: 'Inventory AI' },
-      { name: 'Identify Low Stock', status: 'Pending', agent: 'Inventory AI' },
-      { name: 'Process Supplier Orders', status: 'Pending', agent: 'Procurement Agent' },
-      { name: 'Update Stock Quantities', status: 'Pending', agent: 'Database Agent' }
+      { name: 'Audit Global Inventory', status: 'Pending' as any, agent: 'Inventory AI' },
+      { name: 'Identify Low Stock', status: 'Pending' as any, agent: 'Inventory AI' },
+      { name: 'Process Supplier Orders', status: 'Pending' as any, agent: 'Procurement Agent' },
+      { name: 'Update Stock Quantities', status: 'Pending' as any, agent: 'Database Agent' }
     ]
   },
   {
@@ -44,10 +44,10 @@ const WORKFLOW_TEMPLATES = [
     color: 'text-emerald-500',
     bg: 'bg-emerald-500/10',
     steps: [
-      { name: 'Audit Daily Procedures', status: 'Pending', agent: 'Billing Agent' },
-      { name: 'Generate Surgery Invoices', status: 'Pending', agent: 'Billing Agent' },
-      { name: 'Process Payments', status: 'Pending', agent: 'Payment Gateway Agent' },
-      { name: 'Sync Revenue Analytics', status: 'Pending', agent: 'Analytics Agent' }
+      { name: 'Audit Daily Procedures', status: 'Pending' as any, agent: 'Billing Agent' },
+      { name: 'Generate Surgery Invoices', status: 'Pending' as any, agent: 'Billing Agent' },
+      { name: 'Process Payments', status: 'Pending' as any, agent: 'Payment Gateway Agent' },
+      { name: 'Sync Revenue Analytics', status: 'Pending' as any, agent: 'Analytics Agent' }
     ]
   }
 ];
@@ -145,7 +145,7 @@ export default function WorkflowDashboard() {
                     {getStatusIcon(wf.status)}
                   </div>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{new Date(wf.startedAt).toLocaleTimeString()}</span>
+                    <span>{new Date(wf.createdAt || Date.now()).toLocaleTimeString()}</span>
                     <Badge variant="secondary" className={`${getStatusColor(wf.status)} border bg-transparent font-medium`}>
                       {wf.status}
                     </Badge>
