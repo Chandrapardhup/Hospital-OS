@@ -188,7 +188,7 @@ export default function AppLayout() {
           </div>
           <div className="hidden lg:block">
             <h1 className="font-bold text-sm tracking-widest text-foreground">HOSPITAL<span className="text-primary font-black">OS</span></h1>
-            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">St. Jude Medical</p>
+            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">Apollo Hospitals</p>
           </div>
         </div>
 

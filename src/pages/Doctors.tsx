@@ -66,7 +66,7 @@ export default function Doctors() {
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Fee</p>
-                <p className="text-lg font-semibold text-foreground">${doctor.consultationFee}</p>
+                <p className="text-lg font-semibold text-foreground">₹{doctor.consultationFee}</p>
               </div>
               <div>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Exp</p>
