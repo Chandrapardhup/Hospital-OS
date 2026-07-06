@@ -16,7 +16,7 @@ export default function Analytics() {
   
   // Wait time (placeholder logic based on pending appointments)
   const pendingAppointments = appointments.filter(a => a.status === 'Scheduled');
-  const avgWaitTime = pendingAppointments.length > 0 ₹ Math.round((pendingAppointments.length * 15) / patients.length || 1) : 0;
+  const avgWaitTime = pendingAppointments.length > 0 ? Math.round((pendingAppointments.length * 15) / patients.length || 1) : 0;
   
   // Critical cases (we can count emergency triage if we had it, fallback to 0)
   const criticalCases = appointments.filter(a => a.type === 'Emergency').length;
