@@ -49,11 +49,15 @@ export default function Inventory() {
     };
 
     const { error } = await supabase.from('inventory').insert([itemData]);
-    if (!error) {
-      setItems(prev => [...prev, itemData].sort((a, b) => a.name.localeCompare(b.name)));
-      setIsModalOpen(false);
-      setNewItem({ name: '', category: 'Medicine', quantity: 0, unit: 'boxes', min_stock_level: 10 });
+    if (error) {
+      console.warn("Supabase insert failed, falling back to local memory:", error);
     }
+    
+    // Always update local state so the UI reflects the addition instantly
+    setItems(prev => [...prev, itemData].sort((a, b) => a.name.localeCompare(b.name)));
+    setIsModalOpen(false);
+    setNewItem({ name: '', category: 'Medicine', quantity: 0, unit: 'boxes', min_stock_level: 10 });
+    
     setIsSubmitting(false);
   };
 

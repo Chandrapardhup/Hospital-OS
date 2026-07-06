@@ -46,16 +46,30 @@ export const brainService = {
       }
     });
 
-    // 3. Lab Backlog
-    // We simulate this by checking if there are many patients but few medical records
-    if (patients.length > 0 && (medicalRecords.length / patients.length) < 0.5) {
+    // 3. Queue Bottleneck Detection (Patients waiting for Doctor)
+    const waitingPatients = appointments.filter(a => a.status === 'Waiting');
+    if (waitingPatients.length > 5) {
       newRecs.push({
-        title: 'Lab Backlog Detected',
+        title: 'High Lobby Wait Times',
         priority: 'Medium',
-        confidenceScore: 72,
-        reason: 'High ratio of patients without recent medical records or lab reports.',
-        department: 'Laboratory',
-        suggestedAction: 'Expedite pending lab results for recent admissions.'
+        confidenceScore: 82,
+        reason: `${waitingPatients.length} patients are currently waiting in the lobby for their tokens to be called.`,
+        department: 'Reception',
+        suggestedAction: 'Deploy additional reception staff to assist with intake, or page available floating doctors.'
+      });
+    }
+
+    // 4. Billing Anomalies or Pending Payments
+    const { invoices } = useHospitalStore.getState();
+    const pendingInvoices = invoices?.filter(i => i.status === 'Pending') || [];
+    if (pendingInvoices.length > 10) {
+      newRecs.push({
+        title: 'Revenue Collection Delay',
+        priority: 'High',
+        confidenceScore: 78,
+        reason: `There are ${pendingInvoices.length} unpaid invoices currently pending.`,
+        department: 'Billing',
+        suggestedAction: 'Send automated SMS payment reminders to patients with outstanding balances.'
       });
     }
 

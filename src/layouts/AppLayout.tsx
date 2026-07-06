@@ -56,7 +56,7 @@ const navItems: NavItem[] = [
   { icon: Stethoscope, label: "Doctors", path: "/doctors", roles: ['admin', 'receptionist'] },
   { icon: Calendar, label: "Appointments", path: "/appointments", roles: ['admin', 'doctor', 'user', 'receptionist'] },
   { icon: AlertTriangle, label: "Emergency", path: "/emergency", roles: ['admin', 'doctor', 'receptionist', 'nurse'] },
-  { icon: FileTextIcon, label: "Medical Records", path: "/medical-records", roles: ['admin', 'user', 'nurse'] },
+  { icon: FileTextIcon, label: "Medical Records", path: "/medical-records", roles: ['user', 'nurse'] },
   { icon: Video, label: "AI Live Consult", path: "/ai-consult", roles: ['user'] },
   { icon: TestTube, label: "Laboratory", path: "/laboratory", roles: ['admin', 'doctor', 'nurse', 'laboratory'] },
   { icon: Pill, label: "Pharmacy", path: "/pharmacy", roles: ['admin', 'doctor', 'nurse', 'pharmacy'] },

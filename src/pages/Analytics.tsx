@@ -10,9 +10,9 @@ export default function Analytics() {
   // Compute live KPI metrics
   const patientVolume = patients.length;
   
-  // Calculate revenue (mock $100 per completed appointment)
-  const completedAppointments = appointments.filter(a => a.status === 'Completed');
-  const revenue = completedAppointments.length * 100;
+  // Calculate revenue from actual paid invoices
+  const invoices = useHospitalStore(state => state.invoices || []);
+  const revenue = invoices.filter(i => i.status === 'Paid').reduce((acc, i) => acc + i.amount, 0);
   
   // Wait time (placeholder logic based on pending appointments)
   const pendingAppointments = appointments.filter(a => a.status === 'Scheduled');

@@ -135,18 +135,22 @@ export default function EmergencyTriage() {
                 </div>
               </div>
               <div className="mt-6 flex flex-col gap-2 relative z-10">
-                <button 
-                  onClick={() => { setSelectedPatient(patient); setIsAssignModalOpen(true); }}
-                  className="w-full bg-muted hover:bg-muted/80 text-foreground py-2 rounded-lg text-sm font-medium transition-colors border border-border"
-                >
-                  Assign Doctor
-                </button>
-                <button 
-                  onClick={() => { setSelectedPatient(patient); setIsInstructionOpen(true); }}
-                  className="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 py-2 rounded-lg text-sm font-bold transition-colors shadow-sm"
-                >
-                  <AlertTriangle className="w-4 h-4" /> Live Instructions
-                </button>
+                {currentUser?.role !== 'admin' && (
+                  <>
+                    <button 
+                      onClick={() => { setSelectedPatient(patient); setIsAssignModalOpen(true); }}
+                      className="w-full bg-muted hover:bg-muted/80 text-foreground py-2 rounded-lg text-sm font-medium transition-colors border border-border"
+                    >
+                      Assign Doctor
+                    </button>
+                    <button 
+                      onClick={() => { setSelectedPatient(patient); setIsInstructionOpen(true); }}
+                      className="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 py-2 rounded-lg text-sm font-bold transition-colors shadow-sm"
+                    >
+                      <AlertTriangle className="w-4 h-4" /> Live Instructions
+                    </button>
+                  </>
+                )}
               </div>
 
               {/* Instructions Chat Display */}
