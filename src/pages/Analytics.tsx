@@ -1,6 +1,6 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, AreaChart, Area } from 'recharts';
-import { TrendingUp, Users, DollarSign, Activity } from 'lucide-react';
+import { TrendingUp, Users, IndianRupee, Activity } from 'lucide-react';
 import { useHospitalStore } from '../store/useHospitalStore';
 
 export default function Analytics() {
@@ -91,9 +91,9 @@ export default function Analytics() {
         <div className="bg-card/40 border border-border/50 rounded-xl p-5 backdrop-blur-sm">
           <div className="flex items-center justify-between mb-2">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Revenue (MTD)</p>
-            <DollarSign className="w-4 h-4 text-emerald-500" />
+            <IndianRupee className="w-4 h-4 text-emerald-500" />
           </div>
-          <div className="text-3xl font-bold text-foreground mb-1">${revenue.toLocaleString()}</div>
+          <div className="text-3xl font-bold text-foreground mb-1">₹{revenue.toLocaleString()}</div>
           <div className="flex items-center gap-1 text-xs text-emerald-500 font-medium">
             <TrendingUp className="w-3 h-3" /> Live Data
           </div>

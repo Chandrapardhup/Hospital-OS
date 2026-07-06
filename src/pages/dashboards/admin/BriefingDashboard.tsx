@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Download, Mail, Activity, Users, DollarSign, Stethoscope, AlertTriangle, Printer } from 'lucide-react';
+import { FileText, Download, Mail, Activity, Users, IndianRupee, Stethoscope, AlertTriangle, Printer } from 'lucide-react';
 import { useEnterpriseStore } from '../../../store/useEnterpriseStore';
 import { briefingService } from '../../../services/briefingService';
 import { Button } from '@/components/ui/button';
@@ -88,9 +88,9 @@ export default function BriefingDashboard() {
               <p className="text-2xl font-bold text-foreground">{latestBriefing.criticalPatients}</p>
             </div>
             <div className="bg-background rounded-xl p-4 border border-border">
-              <DollarSign className="w-6 h-6 text-green-500 mb-2" />
+              <IndianRupee className="w-6 h-6 text-green-500 mb-2" />
               <p className="text-muted-foreground text-sm">Revenue Today</p>
-              <p className="text-2xl font-bold text-foreground">${latestBriefing.revenue.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-foreground">₹{latestBriefing.revenue.toLocaleString()}</p>
             </div>
           </div>
 

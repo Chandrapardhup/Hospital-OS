@@ -4,10 +4,25 @@ import { workflowService } from '../services/workflowService';
 import { emailService } from '../services/emailService';
 import type { HospitalState, Patient, Doctor, Appointment, Notification, Invoice, MedicalRecord, AiConsultation } from '../types/hospital';
 
+export interface InventoryItem {
+  id: string;
+  name: string;
+  category: string;
+  quantity: number;
+  unit: string;
+  min_stock_level: number;
+  status: string;
+  last_restocked: string;
+}
+
 // Extended state to include async actions and loading
 interface ExtendedHospitalState extends HospitalState {
   aiConsultations: AiConsultation[];
+  inventory: InventoryItem[];
   addAiConsultation: (consultation: AiConsultation) => void;
+  setInventory: (items: InventoryItem[]) => void;
+  addInventoryItem: (item: InventoryItem) => void;
+  updateInventoryItem: (id: string, data: Partial<InventoryItem>) => void;
   isLoading: boolean;
   initializeData: () => Promise<void>;
 }
@@ -21,6 +36,7 @@ export const useHospitalStore = create<ExtendedHospitalState>()(
     medicalRecords: [],
     invoices: [],
     aiConsultations: [],
+    inventory: [],
     isLoading: true,
 
     addAiConsultation: (consultation) => set((state) => ({ 
@@ -458,6 +474,17 @@ export const useHospitalStore = create<ExtendedHospitalState>()(
         file_url: newRecord.fileUrl
       });
       if (error) console.error('Error adding record:', error);
+    },
+
+    // Inventory
+    setInventory: (items) => set({ inventory: items }),
+    addInventoryItem: (item) => {
+      set((state) => ({ inventory: [...state.inventory, item] }));
+    },
+    updateInventoryItem: (id, data) => {
+      set((state) => ({
+        inventory: state.inventory.map(i => i.id === id ? { ...i, ...data } : i)
+      }));
     }
   })
 );

@@ -2,19 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Box, Plus, AlertTriangle, CheckCircle2, RefreshCcw, X, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
-interface InventoryItem {
-  id: string;
-  name: string;
-  category: string;
-  quantity: number;
-  unit: string;
-  min_stock_level: number;
-  status: string;
-  last_restocked: string;
-}
+import { useHospitalStore } from '../store/useHospitalStore';
+import type { InventoryItem } from '../store/useHospitalStore';
 
 export default function Inventory() {
-  const [items, setItems] = useState<InventoryItem[]>([]);
+  const items = useHospitalStore(state => state.inventory);
+  const setInventory = useHospitalStore(state => state.setInventory);
+  const addInventoryItem = useHospitalStore(state => state.addInventoryItem);
+  const updateInventoryItem = useHospitalStore(state => state.updateInventoryItem);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newItem, setNewItem] = useState({ name: '', category: 'Medicine', quantity: 0, unit: 'boxes', min_stock_level: 10 });
@@ -24,7 +19,7 @@ export default function Inventory() {
     setIsLoading(true);
     const { data, error } = await supabase.from('inventory').select('*').order('name');
     if (!error && data) {
-      setItems(data);
+      setInventory(data);
     }
     setIsLoading(false);
   };
@@ -54,7 +49,12 @@ export default function Inventory() {
     }
     
     // Always update local state so the UI reflects the addition instantly
-    setItems(prev => [...prev, itemData].sort((a, b) => a.name.localeCompare(b.name)));
+    addInventoryItem(itemData);
+    
+    // Sort array via setInventory to maintain alphabetical order
+    const updatedItems = [...items, itemData].sort((a, b) => a.name.localeCompare(b.name));
+    setInventory(updatedItems);
+
     setIsModalOpen(false);
     setNewItem({ name: '', category: 'Medicine', quantity: 0, unit: 'boxes', min_stock_level: 10 });
     
@@ -68,7 +68,8 @@ export default function Inventory() {
     
     const newStatus = newQty <= item.min_stock_level ? 'Low Stock' : 'In Stock';
     
-    setItems(prev => prev.map(i => i.id === id ? { ...i, quantity: newQty, status: newStatus } : i));
+    updateInventoryItem(id, { quantity: newQty, status: newStatus });
+    
     await supabase.from('inventory').update({ quantity: newQty, status: newStatus }).eq('id', id);
   };
 

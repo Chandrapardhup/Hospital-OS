@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import { CalendarPlus, Edit } from "lucide-react";
 import { useHospitalStore } from "../store/useHospitalStore";
 import type { AppointmentStatus } from "../types/hospital";
+import { useAuthStore } from "../store/useAuthStore";
 import { BookAppointmentModal } from "../components/appointments/BookAppointmentModal";
 import { EditAppointmentModal } from "../components/appointments/EditAppointmentModal";
 
 export default function Appointments() {
+  const currentUser = useAuthStore(state => state.user);
   const appointments = useHospitalStore(state => state.appointments);
   const patients = useHospitalStore(state => state.patients);
   const doctors = useHospitalStore(state => state.doctors);
@@ -105,13 +107,15 @@ export default function Appointments() {
                       <StatusBadge status={appointment.status} />
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button 
-                        onClick={() => setEditingAppointment(appointment)}
-                        className="p-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg transition-colors inline-flex items-center gap-1 opacity-0 group-hover:opacity-100 focus:opacity-100"
-                        title="Edit Appointment"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
+                      {currentUser?.role !== 'admin' && (
+                        <button 
+                          onClick={() => setEditingAppointment(appointment)}
+                          className="p-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg transition-colors inline-flex items-center gap-1 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                          title="Edit Appointment"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );
@@ -160,13 +164,15 @@ export default function Appointments() {
                     {appointment.prescription && <p className="text-primary mt-1"><span className="text-muted-foreground">Rx:</span> {appointment.prescription}</p>}
                   </div>
                 )}
-                <div className="mt-2 pt-2 border-t border-border/50 flex justify-end">
-                  <button 
-                    onClick={() => setEditingAppointment(appointment)}
-                    className="text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-1.5 rounded-lg flex items-center gap-1 font-medium transition-colors"
-                  >
-                    <Edit className="w-3.5 h-3.5" /> Edit
-                  </button>
+                <div className="flex items-center gap-2 mt-4">
+                  {currentUser?.role !== 'admin' && (
+                    <button 
+                      onClick={() => setEditingAppointment(appointment)}
+                      className="text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-1.5 rounded-lg flex items-center gap-1 font-medium transition-colors"
+                    >
+                      <Edit className="w-3.5 h-3.5" /> Edit
+                    </button>
+                  )}
                 </div>
               </div>
             );

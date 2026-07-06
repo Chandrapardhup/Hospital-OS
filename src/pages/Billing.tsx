@@ -99,7 +99,7 @@ export default function Billing() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mt-6 md:mt-8">
           <div className="bg-card/40 border border-border/50 rounded-xl p-5 backdrop-blur-sm">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Total Revenue</p>
-            <div className="text-3xl font-bold text-emerald-500 mb-2">${totalRevenue.toLocaleString()}</div>
+            <div className="text-3xl font-bold text-emerald-500 mb-2">₹{totalRevenue.toLocaleString()}</div>
           </div>
           <div className="bg-card/40 border border-border/50 rounded-xl p-5 backdrop-blur-sm">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Pending Receivables</p>
@@ -116,7 +116,7 @@ export default function Billing() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mt-6 md:mt-8">
           <div className="bg-card/40 border border-border/50 rounded-xl p-5 backdrop-blur-sm">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Total Paid</p>
-            <div className="text-3xl font-bold text-emerald-500 mb-2">${totalRevenue.toLocaleString()}</div>
+            <div className="text-3xl font-bold text-emerald-500 mb-2">₹{totalRevenue.toLocaleString()}</div>
           </div>
           <div className="bg-card/40 border border-border/50 rounded-xl p-5 backdrop-blur-sm">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Amount Due</p>
@@ -146,7 +146,7 @@ export default function Billing() {
                     <td className="px-6 py-4 font-mono text-foreground text-xs">{invoice.id}</td>
                     {!isPatient && <td className="px-6 py-4 font-medium text-foreground">{getPatientName(invoice.patientId)}</td>}
                     <td className="px-6 py-4 text-muted-foreground">{new Date(invoice.date).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 font-medium text-foreground">${invoice.amount.toLocaleString()}</td>
+                    <td className="px-6 py-4 font-medium text-foreground">₹{invoice.amount.toLocaleString()}</td>
                     <td className="px-6 py-4">
                       {invoice.status === 'Paid' && <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20 flex items-center gap-1 w-max"><CheckCircle2 className="w-3 h-3"/> Paid</span>}
                       {invoice.status === 'Pending' && <span className="text-xs font-bold text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/20 flex items-center gap-1 w-max"><Clock className="w-3 h-3"/> Pending</span>}
@@ -210,7 +210,7 @@ export default function Billing() {
                   </div>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-bold text-foreground">${invoice.amount.toLocaleString()}</span>
+                  <div className="font-bold text-foreground">₹{invoice.amount.toLocaleString()}</div>
                   <span className="text-sm text-muted-foreground">{new Date(invoice.date).toLocaleDateString()}</span>
                 </div>
                   <div className="flex gap-2 w-full">

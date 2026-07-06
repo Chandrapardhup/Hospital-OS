@@ -11,7 +11,7 @@ export const brainService = {
 
     // 1. Check ICU / Emergency Overload
     const emergencyPatients = patients.filter(p => p.status === 'Emergency');
-    if (emergencyPatients.length > 5) {
+    if (emergencyPatients.length > 0) {
       newRecs.push({
         title: 'High Emergency Volume',
         priority: 'Critical',
@@ -31,7 +31,7 @@ export const brainService = {
     });
 
     Object.entries(docCounts).forEach(([docId, count]) => {
-      if (count > 10) {
+      if (count > 2) {
         const doc = doctors.find(d => d.id === docId);
         if (doc) {
           newRecs.push({
@@ -48,7 +48,7 @@ export const brainService = {
 
     // 3. Queue Bottleneck Detection (Patients waiting for Doctor)
     const waitingPatients = appointments.filter(a => a.status === 'Waiting');
-    if (waitingPatients.length > 5) {
+    if (waitingPatients.length > 1) {
       newRecs.push({
         title: 'High Lobby Wait Times',
         priority: 'Medium',
@@ -62,7 +62,7 @@ export const brainService = {
     // 4. Billing Anomalies or Pending Payments
     const { invoices } = useHospitalStore.getState();
     const pendingInvoices = invoices?.filter(i => i.status === 'Pending') || [];
-    if (pendingInvoices.length > 10) {
+    if (pendingInvoices.length > 2) {
       newRecs.push({
         title: 'Revenue Collection Delay',
         priority: 'High',

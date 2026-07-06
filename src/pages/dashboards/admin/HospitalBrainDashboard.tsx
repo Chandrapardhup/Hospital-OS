@@ -11,15 +11,7 @@ export default function HospitalBrainDashboard() {
   const { recommendations, updateRecommendationStatus } = useEnterpriseStore();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  useEffect(() => {
-    // Run diagnostics when dashboard mounts
-    const run = async () => {
-      setIsAnalyzing(true);
-      await brainService.runDiagnostics();
-      setIsAnalyzing(false);
-    };
-    run();
-  }, []);
+  // Diagnostics will only run when manually triggered
 
   const handleAction = async (id: string, action: 'Approved' | 'Rejected' | 'Ignored') => {
     await updateRecommendationStatus(id, action);
