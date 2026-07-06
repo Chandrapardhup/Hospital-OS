@@ -3,13 +3,29 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { X, UserCheck, Search } from 'lucide-react';
 import { useHospitalStore } from '../store/useHospitalStore';
 
-export function AssignDoctorModal({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
+export function AssignDoctorModal({ 
+  open, 
+  onOpenChange,
+  preselectedPatientId 
+}: { 
+  open: boolean, 
+  onOpenChange: (open: boolean) => void,
+  preselectedPatientId?: string
+}) {
   const patients = useHospitalStore(state => state.patients);
   const doctors = useHospitalStore(state => state.doctors);
   const updatePatient = useHospitalStore(state => state.updatePatient);
   const addNotification = useHospitalStore(state => state.addNotification);
 
-  const [selectedPatient, setSelectedPatient] = useState('');
+  const [selectedPatient, setSelectedPatient] = useState(preselectedPatientId || '');
+  
+  // Update state if prop changes while modal is open
+  React.useEffect(() => {
+    if (open && preselectedPatientId) {
+      setSelectedPatient(preselectedPatientId);
+    }
+  }, [open, preselectedPatientId]);
+
   const [selectedDoctor, setSelectedDoctor] = useState('');
   const [search, setSearch] = useState('');
 
@@ -62,23 +78,25 @@ export function AssignDoctorModal({ open, onOpenChange }: { open: boolean, onOpe
           </div>
           
           <div className="space-y-6">
-            <div>
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 block">1. Select Unassigned Patient</label>
-              <select 
-                value={selectedPatient}
-                onChange={(e) => setSelectedPatient(e.target.value)}
-                className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary"
-              >
-                <option value="">-- Choose a Patient --</option>
-                {unassignedPatients.map(p => (
-                  <option key={p.id} value={p.id}>{p.name} (ID: {p.id})</option>
-                ))}
-                {unassignedPatients.length === 0 && <option disabled>No unassigned patients available</option>}
-              </select>
-            </div>
+            {!preselectedPatientId && (
+              <div>
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 block">1. Select Unassigned Patient</label>
+                <select 
+                  value={selectedPatient}
+                  onChange={(e) => setSelectedPatient(e.target.value)}
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary"
+                >
+                  <option value="">-- Choose a Patient --</option>
+                  {unassignedPatients.map(p => (
+                    <option key={p.id} value={p.id}>{p.name} (ID: {p.id})</option>
+                  ))}
+                  {unassignedPatients.length === 0 && <option disabled>No unassigned patients available</option>}
+                </select>
+              </div>
+            )}
 
             <div>
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 block">2. Select Doctor</label>
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 block">{preselectedPatientId ? '1. Select Doctor' : '2. Select Doctor'}</label>
               <div className="relative mb-3">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input 

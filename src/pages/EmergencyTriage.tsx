@@ -136,7 +136,7 @@ export default function EmergencyTriage() {
               </div>
               <div className="mt-6 flex flex-col gap-2 relative z-10">
                 <button 
-                  onClick={() => setIsAssignModalOpen(true)}
+                  onClick={() => { setSelectedPatient(patient); setIsAssignModalOpen(true); }}
                   className="w-full bg-muted hover:bg-muted/80 text-foreground py-2 rounded-lg text-sm font-medium transition-colors border border-border"
                 >
                   Assign Doctor
@@ -276,7 +276,11 @@ export default function EmergencyTriage() {
         </Dialog.Portal>
       </Dialog.Root>
 
-      <AssignDoctorModal open={isAssignModalOpen} onOpenChange={setIsAssignModalOpen} />
+      <AssignDoctorModal 
+        open={isAssignModalOpen} 
+        onOpenChange={setIsAssignModalOpen} 
+        preselectedPatientId={selectedPatient?.id}
+      />
 
     </div>
   );
