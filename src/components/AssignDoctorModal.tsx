@@ -13,7 +13,7 @@ export function AssignDoctorModal({ open, onOpenChange }: { open: boolean, onOpe
   const [selectedDoctor, setSelectedDoctor] = useState('');
   const [search, setSearch] = useState('');
 
-  const unassignedPatients = patients.filter(p => !p.assignedDoctorId);
+  const unassignedPatients = patients.filter(p => !p.assignedDoctorId && p.status !== 'Discharged');
 
   const filteredDoctors = doctors.filter(d => 
     d.name.toLowerCase().includes(search.toLowerCase()) || 
