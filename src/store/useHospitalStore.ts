@@ -307,7 +307,7 @@ export const useHospitalStore = create<ExtendedHospitalState>()(
             </div>
             <div style="padding: 24px;">
               <p>Dear <strong>${pat?.name || 'Patient'}</strong>,</p>
-              <p>Your appointment has been successfully booked at HospitalOS.</p>
+              <p>Your appointment has been successfully booked at Apollo Hospitals.</p>
               <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
                 <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Doctor:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">Dr. ${doc?.name || 'Doctor'} (${doc?.specialization || 'Specialist'})</td></tr>
                 <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Date:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">${appointment.date}</td></tr>
@@ -322,7 +322,7 @@ export const useHospitalStore = create<ExtendedHospitalState>()(
 
         // Notify Doctor (Email)
         emailService.queueEmail(
-          doc?.email || 'doctor@hospitalos.local',
+          doc?.email || 'doctor@Apollo Hospitals.local',
           `New Appointment Booking: ${pat?.name || 'Patient'}`,
           'Schedule Update',
           `

@@ -36,7 +36,7 @@ export default function HospitalBrainDashboard() {
       await addEmail({
         id: crypto.randomUUID(),
         subject: `[AI ACTION] ${rec.title} Approved`,
-        recipient: `${rec.department.toLowerCase().replace(' ', '')}_head@hospitalos.local`,
+        recipient: `${rec.department.toLowerCase().replace(' ', '')}_head@Apollo Hospitals.local`,
         status: 'Delivered',
         template: 'action_approval',
         content: `Automated Action Approved:\n\nInsight: ${rec.title}\nReason: ${rec.reason}\nAction: ${rec.suggestedAction}\n\nA new workflow has been spun up to track progress.`,

@@ -238,7 +238,7 @@ export default function LoginPage() {
   };
 
   const [showSplash, setShowSplash] = useState(() => {
-    if (sessionStorage.getItem('hospitalos_splash_shown')) return false;
+    if (sessionStorage.getItem('Apollo Hospitals_splash_shown')) return false;
     return true;
   });
 
@@ -247,7 +247,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!showSplash) return;
-    sessionStorage.setItem('hospitalos_splash_shown', 'true');
+    sessionStorage.setItem('Apollo Hospitals_splash_shown', 'true');
 
     const tLogo = setTimeout(() => setLogoPhase(true), 3500);
     const tEnd = setTimeout(() => setShowSplash(false), 5500);
@@ -514,7 +514,7 @@ export default function LoginPage() {
           className="flex flex-col items-center justify-center mb-8"
         >
           <div className="w-16 h-16 rounded-2xl overflow-hidden border border-primary/50 flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(168,85,247,0.3)] bg-black">
-            <img src="/logo.png" alt="HospitalOS" className="w-full h-full object-cover" />
+            <img src="/logo.png" alt="Apollo Hospitals" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-3xl font-black tracking-widest text-foreground flex items-center gap-1" style={{ textTransform: 'uppercase' }}>
             HOSPITAL<span className="text-primary">OS</span>

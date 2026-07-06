@@ -41,7 +41,7 @@ export const useSettingsStore = create<SettingsState>()(
       },
     }),
     {
-      name: 'hospitalos-settings',
+      name: 'Apollo Hospitals-settings',
     }
   )
 );

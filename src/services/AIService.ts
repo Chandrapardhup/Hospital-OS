@@ -23,7 +23,7 @@ export class AIService {
 
   // 1. Supervisor Agent
   static async supervisorAgent(query: string): Promise<string> {
-    const prompt = `You are the Supervisor Agent of HospitalOS. Route the following query to the correct department (Emergency, Pharmacy, Records, Doctor, Analytics).`;
+    const prompt = `You are the Supervisor Agent of Apollo Hospitals. Route the following query to the correct department (Emergency, Pharmacy, Records, Doctor, Analytics).`;
     return this.getAIResponse(prompt, query);
   }
 

@@ -78,7 +78,7 @@ export function BookAppointmentModal({ open, onOpenChange, defaultPatientId, isP
           await addPatient({
             id: finalPatientId,
             name: data.patientName,
-            email: `${data.patientName.replace(/\\s+/g, '').toLowerCase() || 'unknown'}@hospitalos.local`,
+            email: `${data.patientName.replace(/\\s+/g, '').toLowerCase() || 'unknown'}@Apollo Hospitals.local`,
             phone: 'N/A',
             dob: '2000-01-01',
             gender: 'Other',

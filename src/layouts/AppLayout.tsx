@@ -109,7 +109,7 @@ export default function AppLayout() {
   
   const [dismissedEmergencies, setDismissedEmergenciesState] = useState<string[]>(() => {
     try {
-      const saved = localStorage.getItem('hospitalos_dismissed_emergencies');
+      const saved = localStorage.getItem('Apollo Hospitals_dismissed_emergencies');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -118,7 +118,7 @@ export default function AppLayout() {
 
   const setDismissedEmergencies = (newIds: string[]) => {
     setDismissedEmergenciesState(newIds);
-    localStorage.setItem('hospitalos_dismissed_emergencies', JSON.stringify(newIds));
+    localStorage.setItem('Apollo Hospitals_dismissed_emergencies', JSON.stringify(newIds));
   };
 
   const activeEmergencies = myAppointments.filter(a => a.type === 'Emergency' && a.status === 'Scheduled' && !dismissedEmergencies.includes(a.id));
@@ -184,7 +184,7 @@ export default function AppLayout() {
       <aside className="hidden md:flex flex-col w-20 lg:w-64 border-r border-border bg-card/30 backdrop-blur-md transition-all duration-300">
         <div className="p-6 flex items-center gap-3 border-b border-border/50 justify-center lg:justify-start">
           <div className="min-w-[32px] w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-black">
-            <img src="/logo.png" alt="HospitalOS Logo" className="w-full h-full object-cover" />
+            <img src="/logo.png" alt="Apollo Hospitals Logo" className="w-full h-full object-cover" />
           </div>
           <div className="hidden lg:block">
             <h1 className="font-bold text-sm tracking-widest text-foreground">HOSPITAL<span className="text-primary font-black">OS</span></h1>
@@ -280,7 +280,7 @@ export default function AppLayout() {
                 <AlertTriangle className="w-4 h-4" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-bold text-foreground">Install HospitalOS</p>
+                <p className="text-sm font-bold text-foreground">Install Apollo Hospitals</p>
                 <p className="text-xs text-muted-foreground mt-0.5">For native push notifications, tap the share button and select <strong>"Add to Home Screen"</strong>.</p>
               </div>
               <button onClick={() => setShowIOSPrompt(false)} className="p-2 -mr-2 text-muted-foreground hover:text-foreground">
@@ -368,7 +368,7 @@ export default function AppLayout() {
               <div className="p-4 flex items-center justify-between border-b border-border/50">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden bg-black">
-                    <img src="/logo.png" alt="HospitalOS Logo" className="w-full h-full object-cover" />
+                    <img src="/logo.png" alt="Apollo Hospitals Logo" className="w-full h-full object-cover" />
                   </div>
                   <div>
                     <h1 className="font-bold text-sm tracking-widest text-foreground">HOSPITAL<span className="text-primary font-black">OS</span></h1>
@@ -453,10 +453,10 @@ function FloatingAIWidget() {
     setMessages(prev => [...prev, { role: 'user', content: userQ }]);
     setIsLoading(true);
     
-    const systemPrompt = `You are the HospitalOS App Assistant.
+    const systemPrompt = `You are the Apollo Hospitals App Assistant.
 CRITICAL RULE: You are ONLY allowed to answer questions about how to use this app, navigate the interface, or view billing/records.
 IF THE USER ASKS ANY MEDICAL, HEALTH, OR SYMPTOM-RELATED QUESTION:
-You MUST refuse to answer and reply EXACTLY with: "I am only an app assistant. For health advice and prescriptions, please go to the Patient Dashboard and use the **AI Video Consultation** ($10 fee) to speak with our AI Doctor."`;
+You MUST refuse to answer and reply EXACTLY with: "I am only an app assistant. For health advice and prescriptions, please go to the Patient Dashboard and use the **AI Video Consultation** (?800 fee) to speak with our AI Doctor."`;
 
     const response = await AIService.getAIResponse(systemPrompt, userQ);
     
@@ -489,7 +489,7 @@ You MUST refuse to answer and reply EXACTLY with: "I am only an app assistant. F
               <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-20 md:pb-4 custom-scrollbar">
                 {messages.length === 0 && (
                   <div className="text-center text-sm md:text-sm text-muted-foreground mt-10 px-4">
-                    How can I help you navigate HospitalOS today?
+                    How can I help you navigate Apollo Hospitals today?
                   </div>
                 )}
                 {messages.map((m, i) => (

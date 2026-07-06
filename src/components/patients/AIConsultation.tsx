@@ -202,12 +202,12 @@ export function AIConsultation() {
     }
     setIsSpeaking(true); 
     
-    const systemPrompt = `You are a virtual AI Doctor for "HospitalOS", a premium, state-of-the-art medical platform.
+    const systemPrompt = `You are a virtual AI Doctor for "Apollo Hospitals", a premium, state-of-the-art medical platform.
 The user is speaking to you about their health via live voice chat.
 1. Respond ONLY in ${language}. 
 2. If ${language} is Telugu or Hindi, use highly natural, native-sounding idioms and polite clinical phrasing. Do NOT use literal translations. Speak like a real local doctor.
 3. Keep responses brief (1-3 sentences) so they sound natural when spoken aloud. Ask follow-up questions if needed.
-4. The consultation fee is exactly $10 (this is an automated system charge, do not mention it unless asked).
+4. The consultation fee is exactly ?800 (this is an automated system charge, do not mention it unless asked).
 5. If they describe symptoms that need medication, provide a standard safe prescription for mild symptoms.
 6. Format output strictly as:
 ADVICE: <your advice>
@@ -348,7 +348,7 @@ PRESCRIPTION: <your prescription (or write "None")>`;
           <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-[100px] -z-10 translate-x-1/2 -translate-y-1/2"></div>
           <Video className="w-16 h-16 text-primary mb-6 animate-pulse" />
           <h2 className="text-3xl font-bold text-white mb-2">AI Live Companion</h2>
-          <p className="text-white/60 mb-8 max-w-md">Select your preferred language to begin the 10-minute live voice consultation. ($10 Fee)</p>
+          <p className="text-white/60 mb-8 max-w-md">Select your preferred language to begin the 10-minute live voice consultation. (?800 Fee)</p>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-lg">
             <button onClick={() => { setLanguage('English'); setHasSelectedLanguage(true); }} className="py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl border border-white/10 transition-all text-lg">English</button>
@@ -398,7 +398,7 @@ PRESCRIPTION: <your prescription (or write "None")>`;
           <Video className="w-6 h-6 text-primary animate-pulse" />
           Ready for Consultation ({language})
         </h3>
-        <p className="text-muted-foreground mb-8">10-minute continuous voice session. Fee: $10.</p>
+        <p className="text-muted-foreground mb-8">10-minute continuous voice session. Fee: ?800.</p>
         <button 
           onClick={startCall}
           className="w-full max-w-md py-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl shadow-[0_0_30px_rgba(168,85,247,0.4)] hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] transition-all flex items-center justify-center gap-3 text-lg"
@@ -558,7 +558,7 @@ PRESCRIPTION: <your prescription (or write "None")>`;
           <div className="bg-[#111] border border-white/10 p-8 rounded-2xl max-w-md w-full mx-4 shadow-2xl text-center">
              <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
              <h3 className="text-2xl font-bold text-white mb-2">End Consultation?</h3>
-             <p className="text-white/60 mb-8">Are you sure you want to end this live session? Your $10 fee will be finalized and the transcript will be saved.</p>
+             <p className="text-white/60 mb-8">Are you sure you want to end this live session? Your ?800 fee will be finalized and the transcript will be saved.</p>
              <div className="flex gap-4 w-full">
                 <button onClick={cancelEndCall} className="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl font-bold transition-all">Cancel</button>
                 <button onClick={endCall} className="flex-1 py-3 bg-red-500 hover:bg-red-600 rounded-xl font-bold text-white shadow-[0_0_15px_rgba(239,68,68,0.5)] transition-all">Yes, Hang Up</button>

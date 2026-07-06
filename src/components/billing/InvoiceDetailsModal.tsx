@@ -77,7 +77,7 @@ export function InvoiceDetailsModal({ invoice, aiConsultation, patientName, onCl
                 <HeartPulse className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h2 className="text-2xl font-black text-gray-900 tracking-tight print-text">HospitalOS</h2>
+                <h2 className="text-2xl font-black text-gray-900 tracking-tight print-text">Apollo Hospitals</h2>
                 <p className="text-sm text-gray-500 font-medium tracking-wide print-text">Premium Care Network</p>
               </div>
             </div>
@@ -154,7 +154,7 @@ export function InvoiceDetailsModal({ invoice, aiConsultation, patientName, onCl
           )}
           
           <div className="mt-16 text-center text-gray-400 text-xs font-bold uppercase tracking-widest print-text">
-            Thank you for choosing HospitalOS
+            Thank you for choosing Apollo Hospitals
           </div>
         </div>
       </div>

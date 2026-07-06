@@ -44,7 +44,7 @@ export default function EmergencyTriage() {
     await addPatient({
       id: pId,
       name: 'Emergency Patient ' + Math.floor(Math.random() * 1000),
-      email: 'emergency@hospitalos.local',
+      email: 'emergency@Apollo Hospitals.local',
       phone: 'N/A',
       dob: '2000-01-01',
       gender: 'Other',

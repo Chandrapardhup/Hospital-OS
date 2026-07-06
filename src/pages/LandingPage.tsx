@@ -24,7 +24,7 @@ const stats = [
 ];
 
 const testimonials = [
-  { name: 'Dr. Sarah Chen', role: 'Chief Of Medicine', text: 'HospitalOS Transformed Our Entire Workflow. The AI Diagnostics Are Simply Phenomenal.' },
+  { name: 'Dr. Sarah Chen', role: 'Chief Of Medicine', text: 'Apollo Hospitals Transformed Our Entire Workflow. The AI Diagnostics Are Simply Phenomenal.' },
   { name: 'James Rodriguez', role: 'Hospital Administrator', text: 'We Cut Our Administrative Overhead By 60%. This Platform Is A Game-Changer.' },
   { name: 'Dr. Priya Sharma', role: 'Emergency Dept Head', text: 'The Emergency Alert System Has Literally Saved Lives. I Cannot Imagine Working Without It.' },
 ];
@@ -601,7 +601,7 @@ export default function LandingPage() {
             </div>
             <span className="text-sm font-bold tracking-[0.15em] text-white/40" style={{ textTransform: 'uppercase' }}>Hospital<span className="text-purple-400">OS</span></span>
           </div>
-          <p className="text-xs text-white/20" style={{ textTransform: 'none' }}>© 2026 HospitalOS. All Rights Reserved. Built With ❤️</p>
+          <p className="text-xs text-white/20" style={{ textTransform: 'none' }}>© 2026 Apollo Hospitals. All Rights Reserved. Built With ❤️</p>
         </div>
       </footer>
     </div>

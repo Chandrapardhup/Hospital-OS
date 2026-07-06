@@ -123,7 +123,7 @@ export default function BriefingDashboard() {
           
           {/* Footer */}
           <div className="text-center pt-8 border-t border-border text-muted-foreground text-sm">
-            Generated automatically by HospitalOS Enterprise AI Engine
+            Generated automatically by Apollo Hospitals Enterprise AI Engine
           </div>
         </motion.div>
       ) : (
