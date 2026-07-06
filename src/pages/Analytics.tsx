@@ -16,12 +16,12 @@ export default function Analytics() {
   
   // Wait time (placeholder logic based on pending appointments)
   const pendingAppointments = appointments.filter(a => a.status === 'Scheduled');
-  const avgWaitTime = pendingAppointments.length > 0 ? Math.round((pendingAppointments.length * 15) / patients.length || 1) : 0;
+  const avgWaitTime = pendingAppointments.length > 0 ₹ Math.round((pendingAppointments.length * 15) / patients.length || 1) : 0;
   
   // Critical cases (we can count emergency triage if we had it, fallback to 0)
   const criticalCases = appointments.filter(a => a.type === 'Emergency').length;
 
-  // Generate dynamic chart data based on last 7 days of appointments
+  // Generate dynamic chart data based on last 7 days of appointments & invoices
   const generateChartData = () => {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const dataMap: Record<string, any> = {};
@@ -34,13 +34,23 @@ export default function Analytics() {
       dataMap[dayName] = { name: dayName, patients: 0, revenue: 0, emergencies: 0 };
     }
 
-    // Populate data
+    // Populate appointments data
     appointments.forEach(app => {
       const appDate = new Date(app.date);
       const dayName = days[appDate.getDay()];
       if (dataMap[dayName]) {
         if (app.type === 'Emergency') dataMap[dayName].emergencies += 1;
-        if (app.status === 'Completed') dataMap[dayName].revenue += 100;
+      }
+    });
+
+    // Populate revenue from invoices
+    invoices.forEach(inv => {
+      if (inv.status === 'Paid') {
+        const invDate = new Date(inv.date || new Date().toISOString());
+        const dayName = days[invDate.getDay()];
+        if (dataMap[dayName]) {
+          dataMap[dayName].revenue += inv.amount;
+        }
       }
     });
 
