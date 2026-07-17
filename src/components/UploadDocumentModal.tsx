@@ -24,9 +24,23 @@ export function UploadDocumentModal({ open, onOpenChange }: UploadDocumentModalP
   const user = useAuthStore(state => state.user);
   
   const [error, setError] = useState<string | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState<string>('');
+
+  // Auto-select the patient if they are logged in
+  React.useEffect(() => {
+    if (user?.role === 'user') {
+      const myPatientId = patients.find(p => p.email === user.email)?.id || user.id;
+      setSelectedPatientId(myPatientId);
+    }
+  }, [user, patients]);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
+    if (!selectedPatientId) {
+      setError("Please select a patient from the dropdown first.");
+      return;
+    }
+
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       const fileName = file.name.toLowerCase();
@@ -42,26 +56,39 @@ export function UploadDocumentModal({ open, onOpenChange }: UploadDocumentModalP
       }
 
       setIsUploading(true);
-      setTimeout(() => {
-        setIsUploading(false);
-        setIsSuccess(true);
-        
-        // Derive correct Patient ID by matching email
-        const currentPatientId = patients.find(p => p.email === user?.email)?.id || user?.id || 'pat_unknown';
-        
-        // Add to global store
-        addMedicalRecord({
-          patientId: currentPatientId,
-          title: file.name,
-          sub: `MR-UPLOAD · Self-Uploaded`,
-          fileUrl: URL.createObjectURL(file) // Create a local blob URL for preview
-        });
+
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const base64Url = event.target?.result as string;
 
         setTimeout(() => {
-          setIsSuccess(false);
-          onOpenChange(false);
-        }, 2000);
-      }, 1500);
+          setIsUploading(false);
+          setIsSuccess(true);
+          
+          // Use the selected patient ID (from dropdown or self)
+          const currentPatientId = selectedPatientId || user?.id || 'pat_unknown';
+          
+          // Add to global store
+          addMedicalRecord({
+            patientId: currentPatientId,
+            title: file.name,
+            sub: `MR-UPLOAD · Self-Uploaded`,
+            fileUrl: base64Url // Save as base64 so it persists and is viewable by doctors
+          });
+
+          setTimeout(() => {
+            setIsSuccess(false);
+            onOpenChange(false);
+          }, 2000);
+        }, 1500);
+      };
+      
+      reader.onerror = () => {
+        setIsUploading(false);
+        setError("Failed to read the file.");
+      };
+      
+      reader.readAsDataURL(file); // Convert file to base64 string
     }
   };
 
@@ -91,7 +118,27 @@ export function UploadDocumentModal({ open, onOpenChange }: UploadDocumentModalP
               </p>
             </div>
           ) : (
-            <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-white/20 hover:border-primary/50 hover:bg-muted rounded-xl transition-all cursor-pointer relative overflow-hidden group">
+            <>
+              {user?.role !== 'user' && (
+                <div className="mb-4">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 block">
+                    Select Patient Record
+                  </label>
+                  <select 
+                    value={selectedPatientId}
+                    onChange={(e) => setSelectedPatientId(e.target.value)}
+                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
+                  >
+                    <option value="">-- Choose Patient --</option>
+                    {patients.map(p => (
+                      <option key={p.id} value={p.id}>{p.name} (ID: {p.id})</option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-muted-foreground mt-1">Please ensure you select the correct patient profile to attach this document to.</p>
+                </div>
+              )}
+              
+              <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-white/20 hover:border-primary/50 hover:bg-muted rounded-xl transition-all cursor-pointer relative overflow-hidden group">
               <div className="flex flex-col items-center justify-center pt-5 pb-6">
                 {isUploading ? (
                   <>
@@ -118,6 +165,7 @@ export function UploadDocumentModal({ open, onOpenChange }: UploadDocumentModalP
                 accept=".pdf,.jpg,.jpeg,.png,.dcm"
               />
             </label>
+            </>
           )}
         </div>
       </DialogContent>

@@ -1,6 +1,8 @@
 import { useHospitalStore } from '../store/useHospitalStore';
+import { useAuthStore } from '../store/useAuthStore';
 
 export default function Doctors() {
+  const { user } = useAuthStore();
   const doctors = useHospitalStore(state => state.doctors);
   const isLoading = false;
 
@@ -8,7 +10,7 @@ export default function Doctors() {
     <div className="max-w-7xl mx-auto space-y-6 pb-20">
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-          <span>Administrator</span>
+          <span>{user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Administrator'}</span>
           <span className="text-foreground/20">•</span>
           <span className="text-primary">Command Center</span>
         </div>

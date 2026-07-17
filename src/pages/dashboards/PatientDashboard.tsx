@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { Calendar, Activity, Pill, FileText, CalendarPlus, Clock, Video } from 'lucide-react';
 import { useHospitalStore } from '../../store/useHospitalStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { QRCodeSVG } from 'qrcode.react';
 import { BookAppointmentModal } from '../../components/appointments/BookAppointmentModal';
+import * as RadixDialog from '@radix-ui/react-dialog';
+import { QrCode, X } from 'lucide-react';
 import type { AppointmentStatus } from '../../types/hospital';
 import { useTranslation } from '../../translations';
 
@@ -24,6 +28,21 @@ export default function PatientDashboard() {
   const getDoctor = (id: string) => doctors.find(d => d.id === id);
 
   const [isBookModalOpen, setIsBookModalOpen] = useState(false);
+  const [showQrApptId, setShowQrApptId] = useState<string | null>(null);
+  
+  const { searchQuery } = useOutletContext<{ searchQuery?: string }>() || {};
+
+  const filteredAppointments = patientAppointments.filter(a => {
+    if (!searchQuery) return true;
+    const doctor = getDoctor(a.doctorId);
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      a.type.toLowerCase().includes(searchLower) ||
+      (doctor?.name || '').toLowerCase().includes(searchLower) ||
+      (doctor?.department || '').toLowerCase().includes(searchLower) ||
+      a.date.includes(searchLower)
+    );
+  });
 
   if (!currentPatient) {
     return (
@@ -95,6 +114,20 @@ export default function PatientDashboard() {
                     <p className="text-sm text-foreground">{nextAppointment.type}</p>
                     <p className="text-xs text-muted-foreground">Type</p>
                   </div>
+                </div>
+                
+                <div className="mt-6 pt-4 border-t border-border/50 flex items-center justify-between">
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-bold text-foreground uppercase tracking-widest text-primary">Appointment QR Pass</h4>
+                    <p className="text-xs text-muted-foreground">Scan at the self-service kiosk to check in instantly.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowQrApptId(nextAppointment.id); }}
+                    className="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary font-bold rounded-xl transition-colors"
+                  >
+                    <QrCode className="w-4 h-4" /> View Pass
+                  </button>
                 </div>
               </div>
             ) : (
@@ -183,8 +216,8 @@ export default function PatientDashboard() {
         </div>
         {/* Mobile View */}
         <div className="md:hidden flex flex-col gap-4 p-4">
-          {patientAppointments.length > 0 ? (
-            patientAppointments.map((appointment) => {
+          {filteredAppointments.length > 0 ? (
+            filteredAppointments.map((appointment) => {
               const doctor = getDoctor(appointment.doctorId);
               return (
                 <div key={appointment.id} className="bg-card/50 border border-border p-4 rounded-xl flex flex-col gap-3">
@@ -236,11 +269,12 @@ export default function PatientDashboard() {
                 <th className="px-6 py-4 font-bold">TYPE</th>
                 <th className="px-6 py-4 font-bold">DETAILS</th>
                 <th className="px-6 py-4 font-bold">STATUS</th>
+                <th className="px-6 py-4 font-bold"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {patientAppointments.length > 0 ? (
-                patientAppointments.map((appointment) => {
+              {filteredAppointments.length > 0 ? (
+                filteredAppointments.map((appointment) => {
                   const doctor = getDoctor(appointment.doctorId);
                   return (
                     <tr key={appointment.id} className="hover:bg-muted transition-colors group">
@@ -265,6 +299,18 @@ export default function PatientDashboard() {
                       <td className="px-6 py-4">
                         <StatusBadge status={appointment.status} />
                       </td>
+                      <td className="px-6 py-4">
+                        {appointment.status === 'Scheduled' && (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowQrApptId(appointment.id); }}
+                            className="p-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition-colors"
+                            title="View QR Pass"
+                          >
+                            <QrCode className="w-4 h-4" />
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   );
                 })
@@ -286,6 +332,47 @@ export default function PatientDashboard() {
         defaultPatientId={currentPatient?.id}
         isPatientMode={true}
       />
+
+      {showQrApptId && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-background/80 backdrop-blur-sm" 
+            onClick={() => setShowQrApptId(null)} 
+          />
+          <div className="relative w-full max-w-sm bg-card border border-border shadow-2xl rounded-2xl p-6 z-[10000] animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                <QrCode className="w-5 h-5 text-primary" /> Appointment QR Pass
+              </h2>
+              <button 
+                onClick={() => setShowQrApptId(null)} 
+                className="text-muted-foreground hover:text-foreground rounded-full p-1 hover:bg-muted transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <p className="text-sm text-muted-foreground mb-6">
+              Scan this code at the reception for instant check-in.
+            </p>
+
+            <div className="flex flex-col items-center justify-center space-y-6">
+              <div className="p-4 bg-white rounded-2xl shadow-sm border border-border/50 inline-block">
+                <QRCodeSVG 
+                  value={`appointment:${showQrApptId}`} 
+                  size={200}
+                  level="H"
+                />
+              </div>
+              
+              <div className="w-full bg-muted/50 rounded-xl p-4 space-y-2 text-sm text-center">
+                <p className="text-muted-foreground">Appointment ID</p>
+                <p className="font-mono font-medium text-foreground text-lg tracking-widest">{showQrApptId}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

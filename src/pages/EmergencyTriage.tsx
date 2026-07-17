@@ -95,12 +95,14 @@ export default function EmergencyTriage() {
             <h1 className="text-3xl font-bold text-foreground tracking-tight">Emergency Triage</h1>
             <p className="text-sm text-muted-foreground mt-1">Real-time critical patient monitoring</p>
           </div>
-          <button 
-            onClick={() => setIsAdmitOpen(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl shadow-[0_0_20px_rgba(239,68,68,0.4)] transition-all"
-          >
-            <Plus className="w-5 h-5" /> Admit Critical
-          </button>
+          {currentUser?.role !== 'doctor' && (
+            <button 
+              onClick={() => setIsAdmitOpen(true)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl shadow-[0_0_20px_rgba(239,68,68,0.4)] transition-all"
+            >
+              <Plus className="w-5 h-5" /> Admit Critical
+            </button>
+          )}
         </div>
       </div>
 
@@ -135,21 +137,21 @@ export default function EmergencyTriage() {
                 </div>
               </div>
               <div className="mt-6 flex flex-col gap-2 relative z-10">
-                {currentUser?.role !== 'admin' && (
-                  <>
+                {currentUser?.role !== 'admin' && currentUser?.role !== 'doctor' && (
                     <button 
                       onClick={() => { setSelectedPatient(patient); setIsAssignModalOpen(true); }}
                       className="w-full bg-muted hover:bg-muted/80 text-foreground py-2 rounded-lg text-sm font-medium transition-colors border border-border"
                     >
                       Assign Doctor
                     </button>
+                )}
+                {currentUser?.role !== 'admin' && (
                     <button 
                       onClick={() => { setSelectedPatient(patient); setIsInstructionOpen(true); }}
                       className="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 py-2 rounded-lg text-sm font-bold transition-colors shadow-sm"
                     >
                       <AlertTriangle className="w-4 h-4" /> Live Instructions
                     </button>
-                  </>
                 )}
               </div>
 
@@ -167,6 +169,23 @@ export default function EmergencyTriage() {
                           <span className="text-[10px] text-muted-foreground">{new Date(inst.time).toLocaleTimeString()}</span>
                         </div>
                         <p className="text-foreground">{inst.text}</p>
+                        <div className="flex justify-between items-center mt-2 pt-1 border-t border-border/20">
+                          <span className={`text-[10px] font-bold uppercase tracking-wider ${inst.seen ? 'text-emerald-500' : 'text-red-500'}`}>
+                            {inst.seen ? 'Seen' : 'Not Seen'}
+                          </span>
+                          {currentUser?.role !== 'doctor' && !inst.seen && (
+                            <button 
+                              onClick={() => {
+                                const newInsts = [...patient.emergencyInstructions!];
+                                newInsts[idx].seen = true;
+                                updatePatient(patient.id, { emergencyInstructions: newInsts });
+                              }}
+                              className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-colors"
+                            >
+                              Mark Seen
+                            </button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>

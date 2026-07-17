@@ -36,7 +36,7 @@ export default function MedicalRecords() {
     <div className="max-w-7xl mx-auto space-y-6 pb-20">
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-          <span>{isPatient ? 'Patient Portal' : 'Administrator'}</span>
+          <span>{isPatient ? 'Patient Portal' : user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Administrator'}</span>
           <span className="text-foreground/20">•</span>
           <span className="text-primary">{isPatient ? 'My Records' : 'Command Center'}</span>
         </div>

@@ -74,44 +74,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 md:gap-3 pt-2">
-        <button 
-          onClick={() => setIsAddPatientOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
-        >
-          <UserPlus className="w-4 h-4 text-primary" /> Register Patient
-        </button>
-        <button 
-          onClick={() => setIsBookModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
-        >
-          <CalendarPlus className="w-4 h-4 text-primary" /> Book Appointment
-        </button>
-        <button 
-          onClick={() => navigate('/emergency')}
-          className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
-        >
-          <AlertTriangle className="w-4 h-4 text-destructive" /> Emergency Check-In
-        </button>
-        <button 
-          onClick={() => navigate('/billing')}
-          className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
-        >
-          <FileText className="w-4 h-4 text-primary" /> Generate Invoice
-        </button>
-        <button 
-          onClick={() => setIsUploadModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
-        >
-          <Upload className="w-4 h-4 text-primary" /> Upload Report
-        </button>
-        <button 
-          onClick={() => setIsAssignDoctorOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
-        >
-          <UserCheck className="w-4 h-4 text-primary" /> Assign Doctor
-        </button>
-      </div>
 
       {/* AI COMMAND CENTER PANEL */}
       <div className="mt-8 bg-[#0F111A] border border-primary/20 rounded-2xl p-6 relative overflow-hidden shadow-[0_0_40px_-15px_rgba(168,85,247,0.2)]">
@@ -139,7 +101,7 @@ export default function Dashboard() {
         </div>
 
         {/* Scores Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 relative z-10 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 relative z-10 mb-8">
           <ScoreCard title="HOSPITAL HEALTH" score={healthScore} color="text-emerald-400" stroke="stroke-emerald-400" />
           <ScoreCard title="OPERATIONAL" score={opScore} color="text-primary" stroke="stroke-primary" />
           <ScoreCard title="PERFORMANCE" score={87} color="text-blue-400" stroke="stroke-blue-400" />
@@ -148,7 +110,7 @@ export default function Dashboard() {
 
         {/* Alerts Grid */}
         {alerts.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 relative z-10">
             {alerts.map((alert, i) => (
               <AlertCard 
                 key={i}
@@ -184,21 +146,21 @@ export default function Dashboard() {
 }
 
 function ScoreCard({ title, score, color, stroke }: { title: string; score: number; color: string; stroke: string }) {
-  const radius = 28;
+  const radius = 24;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (score / 100) * circumference;
 
   return (
-    <div className="bg-card/40 border border-border/50 rounded-xl p-5 flex items-center gap-5 backdrop-blur-sm">
-      <div className="relative w-20 h-20 flex items-center justify-center shrink-0">
+    <div className="bg-card/40 border border-border/50 rounded-xl p-3 sm:p-4 md:p-5 flex flex-col xl:flex-row items-center xl:items-start text-center xl:text-left gap-3 xl:gap-4 backdrop-blur-sm shadow-sm transition-transform hover:scale-[1.02]">
+      <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center shrink-0">
         {/* Background circle */}
         <svg className="w-full h-full transform -rotate-90" viewBox="0 0 64 64">
-          <circle cx="32" cy="32" r={radius} className="stroke-white/10" strokeWidth="6" fill="none" />
+          <circle cx="32" cy="32" r={radius} className="stroke-white/10" strokeWidth="5" fill="none" />
           {/* Progress circle */}
           <circle 
             cx="32" cy="32" r={radius} 
             className={`${stroke}`} 
-            strokeWidth="6" fill="none" 
+            strokeWidth="5" fill="none" 
             strokeLinecap="round"
             style={{
               strokeDasharray: circumference,
@@ -207,12 +169,12 @@ function ScoreCard({ title, score, color, stroke }: { title: string; score: numb
             }}
           />
         </svg>
-        <span className="absolute text-lg font-bold text-foreground">{score}%</span>
+        <span className="absolute text-sm sm:text-lg font-bold text-foreground">{score}%</span>
       </div>
-      <div>
-        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">{title}</p>
-        <p className="text-xl font-bold text-foreground">Score</p>
-        <p className="text-xs text-emerald-500/80 font-medium mt-1">Optimal range</p>
+      <div className="flex flex-col justify-center">
+        <p className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1 line-clamp-1">{title}</p>
+        <p className="text-base sm:text-lg font-bold text-foreground leading-tight">Score</p>
+        <p className="text-[10px] sm:text-xs text-emerald-500/80 font-medium mt-1 whitespace-nowrap">Optimal range</p>
       </div>
     </div>
   );

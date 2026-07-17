@@ -31,9 +31,6 @@ import AILiveCallPage from "./pages/dashboards/AILiveCallPage";
 import { useSettingsStore } from "./store/useSettingsStore";
 
 // Enterprise AI Dashboards
-import HospitalBrainDashboard from './pages/dashboards/admin/HospitalBrainDashboard';
-import WorkflowDashboard from './pages/dashboards/admin/WorkflowDashboard';
-import BriefingDashboard from './pages/dashboards/admin/BriefingDashboard';
 import Inventory from './pages/Inventory';
 
 const queryClient = new QueryClient();
@@ -160,9 +157,6 @@ function AppRoutes() {
         <Route path="admin" element={<RequireAuth allowedRoles={['admin']}><Dashboard /></RequireAuth>} />
         
         {/* Enterprise AI Features */}
-        <Route path="admin/brain" element={<RequireAuth allowedRoles={['admin']}><HospitalBrainDashboard /></RequireAuth>} />
-        <Route path="admin/workflows" element={<RequireAuth allowedRoles={['admin']}><WorkflowDashboard /></RequireAuth>} />
-        <Route path="admin/briefing" element={<RequireAuth allowedRoles={['admin']}><BriefingDashboard /></RequireAuth>} />
         <Route path="patients" element={<RequireAuth allowedRoles={['admin', 'doctor', 'receptionist', 'nurse']}><Patients /></RequireAuth>} />
         <Route path="doctors" element={<RequireAuth allowedRoles={['admin', 'receptionist']}><Doctors /></RequireAuth>} />
         <Route path="appointments" element={<RequireAuth allowedRoles={['admin', 'doctor', 'receptionist', 'user']}><Appointments /></RequireAuth>} />

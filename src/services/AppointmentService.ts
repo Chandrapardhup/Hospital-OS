@@ -11,10 +11,20 @@ export class AppointmentService {
 
   static async bookAppointment(data: Omit<Appointment, 'id' | 'status'>): Promise<Appointment> {
     await delay(800);
+    const today = new Date().toISOString().split('T')[0];
+    let tokenNumber = undefined;
+    if (data.date === today) {
+      const prefix = String.fromCharCode(65 + Math.floor(Math.random() * 5)); // A to E
+      const num = Math.floor(Math.random() * 99) + 1;
+      tokenNumber = `${prefix}-${num.toString().padStart(2, '0')}`;
+    }
+
+    const shortId = `APT-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
     const newAppointment: Appointment = {
       ...data,
-      id: `apt_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-      status: 'Scheduled'
+      id: shortId,
+      status: 'Scheduled',
+      tokenNumber
     };
     useHospitalStore.getState().addAppointment(newAppointment);
 
@@ -83,6 +93,11 @@ export class AppointmentService {
       const updatedAppt = allAppointments.find(a => a.id === id);
       
       if (updatedAppt) {
+        // Automatically discharge patient if Admitting appointment is completed
+        if (data.status === 'Completed' && (updatedAppt.type === 'Admitting' || updatedAppt.type === 'Emergency')) {
+          useHospitalStore.getState().updatePatient(updatedAppt.patientId, { status: 'Discharged' });
+        }
+
         const patient = useHospitalStore.getState().patients.find(p => p.id === updatedAppt.patientId);
         const doctor = useHospitalStore.getState().doctors.find(d => d.id === updatedAppt.doctorId);
         

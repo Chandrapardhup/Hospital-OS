@@ -3,41 +3,57 @@ import { UserPlus, Search } from "lucide-react";
 import { useHospitalStore } from "../store/useHospitalStore";
 import type { PatientStatus } from "../types/hospital";
 import { AddPatientDrawer } from "../components/patients/AddPatientDrawer";
+import { useAuthStore } from "../store/useAuthStore";
 
 export default function Patients() {
+  const user = useAuthStore(state => state.user);
   const patients = useHospitalStore(state => state.patients);
+  const appointments = useHospitalStore(state => state.appointments);
+  const doctors = useHospitalStore(state => state.doctors);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
 
-  const filteredPatients = patients.filter(p => 
+  const isDoctor = user?.role === 'doctor';
+  const currentDoctor = doctors.find(d => d.email === user?.email);
+  
+  const myAppointments = appointments.filter(a => a.doctorId === currentDoctor?.id);
+  const myPatientIds = new Set(myAppointments.map(a => a.patientId));
+
+  const visiblePatients = isDoctor 
+    ? patients.filter(p => myPatientIds.has(p.id)) 
+    : patients;
+
+  const filteredPatients = visiblePatients.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     p.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const admittedCount = patients.filter(p => p.status === 'Admitted').length;
-  const emergencyCount = patients.filter(p => p.status === 'Emergency').length;
-  const dischargedCount = patients.filter(p => p.status === 'Discharged').length;
-  const outpatientCount = patients.filter(p => p.status === 'Outpatient').length;
+  const admittedCount = visiblePatients.filter(p => p.status === 'Admitted').length;
+  const emergencyCount = visiblePatients.filter(p => p.status === 'Emergency').length;
+  const dischargedCount = visiblePatients.filter(p => p.status === 'Discharged').length;
+  const outpatientCount = visiblePatients.filter(p => p.status === 'Outpatient').length;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-20">
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-          <span>Administrator</span>
+          <span>{isDoctor ? currentDoctor?.department || 'Department' : user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Administrator'}</span>
           <span className="text-foreground/20">•</span>
-          <span className="text-primary">Command Center</span>
+          <span className="text-primary">{isDoctor ? "My Patients" : "Command Center"}</span>
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-1 gap-3">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">Patients</h1>
-            <p className="text-sm text-muted-foreground mt-1">Live census · {patients.length} total patients registered</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">{isDoctor ? "My Patients List" : "Patients"}</h1>
+            <p className="text-sm text-muted-foreground mt-1">{isDoctor ? "Patients assigned to you" : "Live census"} · {visiblePatients.length} total patients</p>
           </div>
-          <button 
-            onClick={() => setIsAddDrawerOpen(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 text-foreground font-medium rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all w-full sm:w-auto justify-center min-h-[48px]"
-          >
-            <UserPlus className="w-5 h-5" /> Register patient
-          </button>
+          {!isDoctor && user?.role !== 'admin' && (
+            <button 
+              onClick={() => setIsAddDrawerOpen(true)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 text-foreground font-medium rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all w-full sm:w-auto justify-center min-h-[48px]"
+            >
+              <UserPlus className="w-5 h-5" /> Register patient
+            </button>
+          )}
         </div>
       </div>
 

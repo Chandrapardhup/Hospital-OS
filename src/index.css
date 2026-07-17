@@ -5,54 +5,51 @@
 @layer base {
   :root {
     --font-primary: 'Inter', sans-serif;
-    --font-inter: 'Inter', sans-serif;
-    --font-roboto: 'Roboto', sans-serif;
-    --font-outfit: 'Outfit', sans-serif;
     
-    /* Light Mode Variables */
-    --background: 0 0% 98%;
-    --foreground: 228 35% 6%;
+    /* Light Mode Variables - Crisp Hospital Enterprise Look */
+    --background: 210 40% 98%; /* Soft cool grey/white */
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 228 35% 6%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 228 35% 6%;
-    --primary: 265 89% 68%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 221 83% 53%; /* Medical Blue #2563eb */
     --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 228 35% 6%;
-    --muted: 210 40% 96.1%;
+    --secondary: 214 32% 91%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 214 32% 91%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 228 35% 6%;
+    --accent: 214 32% 91%;
+    --accent-foreground: 222 47% 11%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 265 89% 68%;
-    --radius: 0.5rem;
+    --ring: 221 83% 53%;
+    --radius: 0.75rem; /* 12px rounded corners for a modern feel */
   }
 
   .dark {
-    /* Match the UI from the screenshot: Deep dark bluish-grey background */
-    --background: 228 35% 6%; /* HSL for approx #0B0D17 */
+    /* Professional Enterprise Dark Theme (Dark Slate/Blue) */
+    --background: 222 47% 11%; /* Slate 900 */
     --foreground: 210 40% 98%;
-    --card: 228 30% 9%; 
+    --card: 217 33% 17%; /* Slate 800 */
     --card-foreground: 210 40% 98%;
-    --popover: 228 30% 9%;
+    --popover: 217 33% 17%;
     --popover-foreground: 210 40% 98%;
-    --primary: 265 89% 68%; /* Bright purple like #a855f7 */
-    --primary-foreground: 210 40% 98%;
-    --secondary: 228 20% 15%;
+    --primary: 217 91% 60%; /* Vibrant Medical Blue */
+    --primary-foreground: 222 47% 11%;
+    --secondary: 215 28% 22%; /* Slate 700 */
     --secondary-foreground: 210 40% 98%;
-    --muted: 228 20% 15%;
+    --muted: 215 28% 22%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 228 20% 15%;
+    --accent: 215 28% 22%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 228 20% 15%;
-    --input: 228 20% 15%;
-    --ring: 265 89% 68%;
+    --border: 215 28% 22%;
+    --input: 215 28% 22%;
+    --ring: 217 91% 60%;
   }
 }
 
@@ -79,13 +76,13 @@
   }
 }
 
-/* Glassmorphism utilities */
+/* Cleaner Glassmorphism utilities for Enterprise UI */
 .glass-card {
-  @apply bg-card/60 backdrop-blur-xl border border-white/5 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)];
+  @apply bg-card border border-border shadow-md backdrop-blur-none rounded-2xl;
 }
 
 .glass-panel {
-  @apply bg-background/80 backdrop-blur-md border-r border-white/5;
+  @apply bg-background border-r border-border backdrop-blur-none;
 }
 
 /* Custom scrollbar for landing page */

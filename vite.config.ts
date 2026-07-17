@@ -42,5 +42,12 @@ export default defineConfig({
   },
   server: {
     allowedHosts: true,
+    proxy: {
+      '/api/omnidim': {
+        target: 'https://backend.omnidim.io',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/omnidim/, ''),
+      },
+    },
   },
 })

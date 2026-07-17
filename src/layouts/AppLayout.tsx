@@ -17,14 +17,13 @@ import {
   Search,
   Bot,
   LogOut,
-  BrainCircuit,
-  Network,
   Mail,
   Menu,
   X,
   Send,
   Loader2,
-  Video
+  Video,
+  BedDouble
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuthStore } from "../store/useAuthStore";
@@ -45,12 +44,6 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/", roles: ['admin', 'doctor', 'user', 'receptionist', 'nurse', 'laboratory', 'pharmacy'] },
-  
-  // Enterprise AI Features (Admin Only)
-  { icon: BrainCircuit, label: "Hospital Brain", path: "/admin/brain", roles: ['admin'] },
-  { icon: Network, label: "Workflows", path: "/admin/workflows", roles: ['admin'] },
-  { icon: FileTextIcon, label: "Daily Briefing", path: "/admin/briefing", roles: ['admin'] },
-  
   // Core Modules
   { icon: Users, label: "Patients", path: "/patients", roles: ['admin', 'doctor', 'receptionist', 'nurse'] },
   { icon: Stethoscope, label: "Doctors", path: "/doctors", roles: ['admin', 'receptionist'] },
@@ -60,7 +53,7 @@ const navItems: NavItem[] = [
   { icon: Video, label: "AI Live Consult", path: "/ai-consult", roles: ['user'] },
   { icon: TestTube, label: "Laboratory", path: "/laboratory", roles: ['admin', 'doctor', 'nurse', 'laboratory'] },
   { icon: Pill, label: "Pharmacy", path: "/pharmacy", roles: ['doctor', 'nurse', 'pharmacy'] },
-  { icon: CreditCard, label: "Billing", path: "/billing", roles: ['admin', 'receptionist', 'user'] },
+  { icon: CreditCard, label: "Billing", path: "/billing", roles: ['admin', 'user'] },
   { icon: Box, label: "Inventory", path: "/inventory", roles: ['admin', 'pharmacy', 'nurse'] },
   { icon: BarChart3, label: "analytics", path: "/analytics", roles: ['admin'] },
   { icon: SettingsIcon, label: "settings", path: "/settings", roles: ['admin', 'doctor', 'user', 'receptionist', 'nurse', 'laboratory', 'pharmacy'] },
@@ -181,7 +174,7 @@ export default function AppLayout() {
       )}
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-20 lg:w-64 border-r border-border bg-card/30 backdrop-blur-md transition-all duration-300">
+      <aside className="hidden md:flex flex-col w-20 lg:w-64 glass-panel transition-all duration-300">
         <div className="p-6 flex items-center gap-3 border-b border-border/50 justify-center lg:justify-start">
           <div className="min-w-[32px] w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-black">
             <img src="/logo.png" alt="Apollo Hospitals Logo" className="w-full h-full object-cover" />
@@ -302,19 +295,21 @@ export default function AppLayout() {
           </button>
 
           <div className="flex items-center gap-4 flex-1 max-w-full">
-            <div className="relative w-full max-w-sm group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-              <input 
-                type="text" 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search..." 
-                className="w-full bg-muted border border-border rounded-full py-2 pl-10 pr-4 md:pr-12 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all min-h-[40px]"
-              />
-              <div className="hidden md:flex absolute right-3 top-1/2 -translate-y-1/2 items-center gap-1">
-                <kbd className="inline-flex items-center gap-1 bg-muted/80 border border-border rounded px-1.5 text-[10px] font-medium text-muted-foreground">⌘K</kbd>
+            {user?.role === 'user' && (
+              <div className="relative w-full max-w-sm group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                <input 
+                  type="text" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search..." 
+                  className="w-full bg-muted border border-border rounded-full py-2 pl-10 pr-4 md:pr-12 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all min-h-[40px]"
+                />
+                <div className="hidden md:flex absolute right-3 top-1/2 -translate-y-1/2 items-center gap-1">
+                  <kbd className="inline-flex items-center gap-1 bg-muted/80 border border-border rounded px-1.5 text-[10px] font-medium text-muted-foreground">⌘K</kbd>
+                </div>
               </div>
-            </div>
+            )}
           </div>
           
           <div className="flex items-center gap-3 ml-2">
@@ -342,7 +337,7 @@ export default function AppLayout() {
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto p-4 md:p-6 relative w-full custom-scrollbar">
-          <Outlet />
+          <Outlet context={{ searchQuery }} />
         </main>
       </div>
 
@@ -435,7 +430,7 @@ export default function AppLayout() {
         })}
       </div>
 
-      <FloatingAIWidget />
+      {user?.role === 'user' && <FloatingAIWidget />}
     </div>
   );
 }
@@ -453,10 +448,9 @@ function FloatingAIWidget() {
     setMessages(prev => [...prev, { role: 'user', content: userQ }]);
     setIsLoading(true);
     
-    const systemPrompt = `You are the Apollo Hospitals App Assistant.
-CRITICAL RULE: You are ONLY allowed to answer questions about how to use this app, navigate the interface, or view billing/records.
-IF THE USER ASKS ANY MEDICAL, HEALTH, OR SYMPTOM-RELATED QUESTION:
-You MUST refuse to answer and reply EXACTLY with: "I am only an app assistant. For health advice and prescriptions, please go to the Patient Dashboard and use the **AI Video Consultation** (?800 fee) to speak with our AI Doctor."`;
+    const systemPrompt = `You are the HospitalOS AI Health Assistant. 
+You can help users navigate the app, and you can ALSO provide general, helpful responses to health and symptom-related questions. 
+If a user asks about symptoms (e.g. fever, headache, stomach pain), provide a polite, helpful, and informative initial medical assessment, but always remind them to book an appointment for an official diagnosis.`;
 
     const response = await AIService.getAIResponse(systemPrompt, userQ);
     

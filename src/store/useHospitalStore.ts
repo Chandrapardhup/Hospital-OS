@@ -141,11 +141,20 @@ export const useHospitalStore = create<ExtendedHospitalState>()(
           doctorId: i.doctor_id
         });
 
-        const mapRecord = (r: any) => ({
-          ...r,
-          patientId: r.patient_id,
-          fileUrl: r.file_url
-        });
+        const mapRecord = (r: any) => {
+          let resolvedFileUrl = r.file_url;
+          if (resolvedFileUrl?.startsWith('local:')) {
+            try {
+              const localUrl = localStorage.getItem(`doc_${r.id}`);
+              if (localUrl) resolvedFileUrl = localUrl;
+            } catch(e) {}
+          }
+          return {
+            ...r,
+            patientId: r.patient_id,
+            fileUrl: resolvedFileUrl
+          };
+        };
 
         set({
           patients: patients?.map(mapPatient) || [],
@@ -466,13 +475,26 @@ export const useHospitalStore = create<ExtendedHospitalState>()(
         id: `rec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
         createdAt: new Date().toISOString()
       };
+
+      // Save large files to local storage to prevent Supabase payload size limits on text columns
+      let storageUrl = newRecord.fileUrl;
+      if (storageUrl?.startsWith('data:')) {
+        try {
+          localStorage.setItem(`doc_${newRecord.id}`, storageUrl);
+          storageUrl = `local:${newRecord.id}`;
+        } catch (e) {
+          console.error("Local storage full", e);
+        }
+      }
+
       set((state) => ({ medicalRecords: [newRecord, ...state.medicalRecords] }));
+      
       const { error } = await supabase.from('medical_records').insert({
         id: newRecord.id,
         patient_id: newRecord.patientId,
         title: newRecord.title,
         sub: newRecord.sub,
-        file_url: newRecord.fileUrl
+        file_url: storageUrl
       });
       if (error) console.error('Error adding record:', error);
     },

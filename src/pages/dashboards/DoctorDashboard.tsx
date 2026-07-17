@@ -212,12 +212,14 @@ export default function DoctorDashboard() {
                   >
                     <Eye className="w-3.5 h-3.5" /> View Patient
                   </button>
-                  <button 
-                    onClick={() => setEditingAppointment(appointment)}
-                    className="flex-1 text-amber-500 hover:bg-amber-500/20 font-medium text-xs transition-colors px-3 py-2 rounded-lg bg-amber-500/10 flex items-center justify-center gap-2"
-                  >
-                    <Edit className="w-3.5 h-3.5" /> Edit & Prescribe
-                  </button>
+                  {!(appointment.status === 'Completed' || appointment.status === 'Cancelled' || appointment.status === 'No Show') && (
+                    <button 
+                      onClick={() => setEditingAppointment(appointment)}
+                      className="flex-1 text-amber-500 hover:bg-amber-500/20 font-medium text-xs transition-colors px-3 py-2 rounded-lg bg-amber-500/10 flex items-center justify-center gap-2"
+                    >
+                      <Edit className="w-3.5 h-3.5" /> Edit & Prescribe
+                    </button>
+                  )}
                 </div>
               </div>
             ))
@@ -272,12 +274,14 @@ export default function DoctorDashboard() {
                       >
                         <Eye className="w-3 h-3" /> View Patient
                       </button>
-                      <button 
-                        onClick={() => setEditingAppointment(appointment)}
-                        className="text-amber-500 hover:text-amber-600 font-medium text-xs transition-colors px-3 py-1.5 rounded-lg bg-amber-500/10 flex items-center gap-1"
-                      >
-                        <Edit className="w-3 h-3" /> Edit & Prescribe
-                      </button>
+                      {!(appointment.status === 'Completed' || appointment.status === 'Cancelled' || appointment.status === 'No Show') && (
+                        <button 
+                          onClick={() => setEditingAppointment(appointment)}
+                          className="text-amber-500 hover:text-amber-600 font-medium text-xs transition-colors px-3 py-1.5 rounded-lg bg-amber-500/10 flex items-center gap-1"
+                        >
+                          <Edit className="w-3 h-3" /> Edit & Prescribe
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))

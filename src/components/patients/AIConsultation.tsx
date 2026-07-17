@@ -207,7 +207,7 @@ The user is speaking to you about their health via live voice chat.
 1. Respond ONLY in ${language}. 
 2. If ${language} is Telugu or Hindi, use highly natural, native-sounding idioms and polite clinical phrasing. Do NOT use literal translations. Speak like a real local doctor.
 3. Keep responses brief (1-3 sentences) so they sound natural when spoken aloud. Ask follow-up questions if needed.
-4. The consultation fee is exactly ?800 (this is an automated system charge, do not mention it unless asked).
+4. The consultation fee is exactly ₹200 (this is an automated system charge, do not mention it unless asked).
 5. If they describe symptoms that need medication, provide a standard safe prescription for mild symptoms.
 6. Format output strictly as:
 ADVICE: <your advice>
@@ -323,10 +323,10 @@ PRESCRIPTION: <your prescription (or write "None")>`;
     addInvoice({
       id: invoiceId,
       patientId: currentPatientId,
-      amount: 10,
+      amount: 200,
       status: 'Pending',
       date: new Date().toISOString().split('T')[0],
-      items: [{ description: 'AI Call', cost: 10 }]
+      items: [{ description: 'AI Call', cost: 200 }]
     });
   };
 
@@ -348,7 +348,7 @@ PRESCRIPTION: <your prescription (or write "None")>`;
           <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-[100px] -z-10 translate-x-1/2 -translate-y-1/2"></div>
           <Video className="w-16 h-16 text-primary mb-6 animate-pulse" />
           <h2 className="text-3xl font-bold text-white mb-2">AI Live Companion</h2>
-          <p className="text-white/60 mb-8 max-w-md">Select your preferred language to begin the 10-minute live voice consultation. (?800 Fee)</p>
+          <p className="text-white/60 mb-8 max-w-md">Select your preferred language to begin the 10-minute live voice consultation. (₹200 Fee)</p>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-lg">
             <button onClick={() => { setLanguage('English'); setHasSelectedLanguage(true); }} className="py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl border border-white/10 transition-all text-lg">English</button>
@@ -398,7 +398,7 @@ PRESCRIPTION: <your prescription (or write "None")>`;
           <Video className="w-6 h-6 text-primary animate-pulse" />
           Ready for Consultation ({language})
         </h3>
-        <p className="text-muted-foreground mb-8">10-minute continuous voice session. Fee: ?800.</p>
+        <p className="text-muted-foreground mb-8">10-minute continuous voice session. Fee: ₹200.</p>
         <button 
           onClick={startCall}
           className="w-full max-w-md py-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl shadow-[0_0_30px_rgba(168,85,247,0.4)] hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] transition-all flex items-center justify-center gap-3 text-lg"
@@ -448,16 +448,29 @@ PRESCRIPTION: <your prescription (or write "None")>`;
       {/* Main Video Area (Realistic Male Avatar Image) */}
       <div className="flex-1 relative flex items-center justify-center overflow-hidden bg-[#050505]">
         
-        {/* Animated Avatar Image */}
-        <div className={`relative w-full h-full flex items-center justify-center transition-all duration-700 ${isSpeaking ? 'scale-105' : 'scale-100'}`}>
-           <img 
-             src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=1200&auto=format&fit=crop" 
-             alt="AI Doctor Avatar"
-             className={`w-full h-full object-cover transition-opacity duration-700 ${isSpeaking ? 'opacity-100' : 'opacity-60'}`}
+        {/* Realistic Video Avatar */}
+        <div className={`relative w-full h-full flex items-center justify-center bg-black transition-all duration-700`}>
+           <video 
+             src="https://assets.mixkit.co/videos/preview/mixkit-male-doctor-talking-on-a-video-call-42031-large.mp4" 
+             className="w-full h-full object-cover"
+             loop
+             muted
+             playsInline
+             ref={(el) => {
+               if (el) {
+                 if (isSpeaking) {
+                   el.playbackRate = 1.0;
+                   el.play().catch(()=>{});
+                 } else {
+                   // When not speaking, drastically slow down to simulate idle listening/breathing
+                   el.playbackRate = 0.1;
+                   if (el.paused) el.play().catch(()=>{});
+                 }
+               }
+             }}
            />
-           {isSpeaking && (
-              <div className="absolute inset-0 bg-primary/10 animate-pulse mix-blend-overlay"></div>
-           )}
+           {/* Professional overlay to blend the video */}
+           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-background/50 mix-blend-multiply pointer-events-none"></div>
         </div>
 
         {/* Audio Waveform overlay when speaking */}
@@ -558,7 +571,7 @@ PRESCRIPTION: <your prescription (or write "None")>`;
           <div className="bg-[#111] border border-white/10 p-8 rounded-2xl max-w-md w-full mx-4 shadow-2xl text-center">
              <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
              <h3 className="text-2xl font-bold text-white mb-2">End Consultation?</h3>
-             <p className="text-white/60 mb-8">Are you sure you want to end this live session? Your ?800 fee will be finalized and the transcript will be saved.</p>
+             <p className="text-white/60 mb-8">Are you sure you want to end this live session? Your ₹200 fee will be finalized and the transcript will be saved.</p>
              <div className="flex gap-4 w-full">
                 <button onClick={cancelEndCall} className="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl font-bold transition-all">Cancel</button>
                 <button onClick={endCall} className="flex-1 py-3 bg-red-500 hover:bg-red-600 rounded-xl font-bold text-white shadow-[0_0_15px_rgba(239,68,68,0.5)] transition-all">Yes, Hang Up</button>
@@ -569,12 +582,24 @@ PRESCRIPTION: <your prescription (or write "None")>`;
 
       {/* Prescription Overlay (if generated) */}
       {result?.prescription && !isSpeaking && !showQuitConfirm && (
-        <div className="absolute top-20 left-6 right-6 md:right-auto md:w-80 bg-white/95 backdrop-blur-xl border border-white/20 rounded-xl p-5 shadow-2xl z-30 animate-in fade-in slide-in-from-left-8 text-black">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-bl-full -z-10"></div>
-          <h4 className="text-xs font-bold text-black/50 uppercase tracking-wider mb-3 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-primary" /> Auto-Prescription
-          </h4>
-          <p className="text-sm font-mono whitespace-pre-wrap">{result.prescription}</p>
+        <div className="absolute top-24 left-6 right-6 md:right-auto md:w-[400px] bg-card/95 backdrop-blur-xl border border-border rounded-2xl p-5 shadow-2xl z-30 animate-in fade-in slide-in-from-left-8">
+          <div className="flex items-center gap-2 mb-3 border-b border-border pb-3">
+            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+              <FileText className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-foreground">AI Prescription Suggestion</h4>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Preliminary Guidance Only</p>
+            </div>
+          </div>
+          <p className="text-sm font-mono whitespace-pre-wrap text-foreground/90 mb-4 bg-background/50 p-3 rounded-xl border border-border/50">{result.prescription}</p>
+          
+          <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-3 flex gap-3 items-start">
+            <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+            <div className="text-xs text-destructive/90 leading-relaxed">
+              <strong>Medical Disclaimer:</strong> This is an AI-generated preliminary suggestion. It does not replace professional medical advice. You must consult a licensed physician before taking any medication.
+            </div>
+          </div>
         </div>
       )}
     </div>
