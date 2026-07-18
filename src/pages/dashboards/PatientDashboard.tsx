@@ -1,17 +1,40 @@
 import React, { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Calendar, Activity, Pill, FileText, CalendarPlus, Clock, Video } from 'lucide-react';
+import { Calendar, Activity, Pill, FileText, CalendarPlus, Clock, Video, QrCode, X } from 'lucide-react';
 import { useHospitalStore } from '../../store/useHospitalStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useSettingsStore } from '../../store/useSettingsStore';
 import { QRCodeSVG } from 'qrcode.react';
 import { BookAppointmentModal } from '../../components/appointments/BookAppointmentModal';
-import * as RadixDialog from '@radix-ui/react-dialog';
-import { QrCode, X } from 'lucide-react';
 import type { AppointmentStatus } from '../../types/hospital';
 import { useTranslation } from '../../translations';
+import { motion } from 'framer-motion';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+};
 
 export default function PatientDashboard() {
   const user = useAuthStore(state => state.user);
+  const setTheme = useSettingsStore(state => state.setTheme);
+
+  React.useEffect(() => {
+    const hasInit = localStorage.getItem('patient_theme_init');
+    if (!hasInit) {
+      setTheme('light');
+      localStorage.setItem('patient_theme_init', 'true');
+    }
+  }, [setTheme]);
+
   const { t } = useTranslation();
   const patients = useHospitalStore(state => state.patients);
   const appointments = useHospitalStore(state => state.appointments);
@@ -47,57 +70,65 @@ export default function PatientDashboard() {
   if (!currentPatient) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
-        <div className="text-center space-y-4">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center space-y-4"
+        >
           <h2 className="text-2xl font-bold text-foreground">User Profile Not Found</h2>
           <p className="text-muted-foreground">Your profile could not be located in the system.</p>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-20">
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+    <motion.div 
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+      className="max-w-7xl mx-auto space-y-8 pb-20"
+    >
+      <motion.div variants={itemVariants} className="flex flex-col gap-1">
+        <div className="flex items-center gap-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
           <span>{currentPatient.name}</span>
-          <span className="text-foreground/20">•</span>
-          <span className="text-primary">User Portal</span>
+          <span className="text-border">•</span>
+          <span className="text-foreground">User Portal</span>
         </div>
-        <div className="flex items-center justify-between mt-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
           <div>
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">My Health Dashboard</h1>
+            <h1 className="text-3xl font-semibold text-foreground tracking-tight">My Health Dashboard</h1>
             <p className="text-sm text-muted-foreground mt-1">{t('welcome_back')}, {currentPatient.name.split(' ')[0]}.</p>
           </div>
           <button 
             onClick={() => setIsBookModalOpen(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 text-foreground font-medium rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all"
+            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-foreground text-background hover:bg-foreground/90 font-medium rounded-xl shadow-sm transition-all"
           >
             <CalendarPlus className="w-5 h-5" /> {t('book_appointment')}
           </button>
         </div>
-      </div>
+      </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
         {/* Next Appointment Card */}
-        <div className="col-span-2 space-y-6">
-          <div className="bg-card/30 border border-border rounded-2xl p-6 backdrop-blur-md relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <motion.div variants={itemVariants} className="col-span-1 md:col-span-2 space-y-6">
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm relative overflow-hidden group">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h3 className="text-lg font-bold text-foreground">Next Appointment</h3>
+                <h3 className="text-lg font-semibold text-foreground">Next Appointment</h3>
                 <p className="text-sm text-muted-foreground">Your upcoming scheduled visit</p>
               </div>
-              <div className="p-3 rounded-full bg-primary/20 text-primary">
-                <Calendar className="w-6 h-6" />
+              <div className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">
+                <Calendar className="w-5 h-5" />
               </div>
             </div>
 
             {nextAppointment ? (
-              <div className="bg-background/50 rounded-xl p-5 border border-border/50">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border/50 pb-4 mb-4 gap-4">
+              <div className="bg-muted/50 rounded-xl p-6 border border-border/50">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border/50 pb-5 mb-5 gap-4">
                   <div>
-                    <p className="text-2xl font-bold text-foreground">{nextAppointment.date}</p>
-                    <p className="text-muted-foreground flex items-center gap-2 mt-1">
+                    <p className="text-3xl font-semibold text-foreground tracking-tight">{nextAppointment.date}</p>
+                    <p className="text-muted-foreground flex items-center gap-2 mt-2 font-medium">
                       <Clock className="w-4 h-4" /> {nextAppointment.time}
                     </p>
                   </div>
@@ -107,65 +138,65 @@ export default function PatientDashboard() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium text-foreground">{getDoctor(nextAppointment.doctorId)?.name}</p>
+                    <p className="font-semibold text-foreground">{getDoctor(nextAppointment.doctorId)?.name}</p>
                     <p className="text-sm text-muted-foreground">{getDoctor(nextAppointment.doctorId)?.department}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-foreground">{nextAppointment.type}</p>
+                    <p className="text-sm font-medium text-foreground">{nextAppointment.type}</p>
                     <p className="text-xs text-muted-foreground">Type</p>
                   </div>
                 </div>
                 
-                <div className="mt-6 pt-4 border-t border-border/50 flex items-center justify-between">
+                <div className="mt-6 pt-5 border-t border-border/50 flex items-center justify-between">
                   <div className="space-y-1">
-                    <h4 className="text-sm font-bold text-foreground uppercase tracking-widest text-primary">Appointment QR Pass</h4>
+                    <h4 className="text-sm font-semibold text-foreground uppercase tracking-widest">Appointment QR Pass</h4>
                     <p className="text-xs text-muted-foreground">Scan at the self-service kiosk to check in instantly.</p>
                   </div>
                   <button
                     type="button"
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowQrApptId(nextAppointment.id); }}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary font-bold rounded-xl transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-foreground font-medium rounded-xl transition-colors shadow-sm border border-border/50"
                   >
                     <QrCode className="w-4 h-4" /> View Pass
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="bg-background/50 rounded-xl p-8 border border-border/50 text-center">
+              <div className="bg-muted/30 rounded-xl p-8 border border-border/50 text-center">
                 <p className="text-muted-foreground">You have no upcoming appointments.</p>
                 <button 
                   onClick={() => setIsBookModalOpen(true)}
-                  className="mt-4 text-primary hover:text-primary/80 font-medium text-sm transition-colors"
+                  className="mt-4 text-foreground hover:opacity-80 font-medium text-sm transition-opacity"
                 >
                   Schedule one now &rarr;
                 </button>
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
 
         {/* Quick Vitals / Status */}
-        <div className="bg-card/30 border border-border rounded-2xl p-6 backdrop-blur-md">
-           <h3 className="text-lg font-bold text-foreground mb-6">Health Overview</h3>
+        <motion.div variants={itemVariants} className="bg-card border border-border shadow-sm rounded-2xl p-6">
+           <h3 className="text-lg font-semibold text-foreground mb-6">Health Overview</h3>
            
            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-xl bg-muted border border-border/50">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border border-border/50 transition-colors hover:bg-muted/80">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-blue-500/20 text-blue-500">
-                    <Activity className="w-5 h-5" />
+                  <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-foreground">
+                    <Activity className="w-4 h-4" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-foreground">Blood Group</p>
                     <p className="text-xs text-muted-foreground">Type</p>
                   </div>
                 </div>
-                <p className="text-lg font-bold text-foreground">{currentPatient.bloodGroup}</p>
+                <p className="text-lg font-semibold text-foreground">{currentPatient.bloodGroup}</p>
               </div>
 
-              <div className="flex items-center justify-between p-4 rounded-xl bg-muted border border-border/50">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border border-border/50 transition-colors hover:bg-muted/80">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-500">
-                    <Pill className="w-5 h-5" />
+                  <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-foreground">
+                    <Pill className="w-4 h-4" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-foreground">Allergies</p>
@@ -177,10 +208,10 @@ export default function PatientDashboard() {
                 </p>
               </div>
 
-              <div className="flex items-center justify-between p-4 rounded-xl bg-muted border border-border/50">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border border-border/50 transition-colors hover:bg-muted/80">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-amber-500/20 text-amber-500">
-                    <FileText className="w-5 h-5" />
+                  <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-foreground">
+                    <FileText className="w-4 h-4" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-foreground">Insurance</p>
@@ -192,59 +223,57 @@ export default function PatientDashboard() {
               {/* Quick Link to Billing */}
               <button 
                 onClick={() => window.location.href = '/billing'}
-                className="w-full flex items-center justify-between p-4 rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors mt-2"
+                className="w-full flex items-center justify-between p-4 rounded-xl bg-foreground text-background hover:opacity-90 transition-opacity mt-4 shadow-sm"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/20 text-primary">
+                  <div className="p-2 rounded-lg bg-background/20 text-background">
                     <FileText className="w-5 h-5" />
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-bold text-foreground">My Bills & Invoices</p>
-                    <p className="text-xs text-muted-foreground">View or download your billing history</p>
+                    <p className="text-sm font-semibold text-background">My Bills & Invoices</p>
+                    <p className="text-xs text-background/80">View or download history</p>
                   </div>
                 </div>
-                <div className="text-primary font-bold">&rarr;</div>
+                <div className="font-bold text-background">&rarr;</div>
               </button>
            </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Appointment History Table */}
-      <div className="bg-card/30 border border-border rounded-2xl backdrop-blur-md overflow-hidden mt-6">
+      <motion.div variants={itemVariants} className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden mt-6">
         <div className="p-6 border-b border-border/50">
-          <h3 className="text-lg font-bold text-foreground">Appointment History</h3>
+          <h3 className="text-lg font-semibold text-foreground">Appointment History</h3>
         </div>
         {/* Mobile View */}
-        <div className="md:hidden flex flex-col gap-4 p-4">
+        <div className="md:hidden flex flex-col gap-4 p-4 bg-muted/20">
           {filteredAppointments.length > 0 ? (
             filteredAppointments.map((appointment) => {
               const doctor = getDoctor(appointment.doctorId);
               return (
-                <div key={appointment.id} className="bg-card/50 border border-border p-4 rounded-xl flex flex-col gap-3">
+                <div key={appointment.id} className="bg-card border border-border shadow-sm p-5 rounded-xl flex flex-col gap-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h4 className="font-bold text-foreground text-base">Dr. {doctor?.name || '-'}</h4>
-                      <p className="text-xs text-muted-foreground font-mono">{appointment.date} @ {appointment.time}</p>
+                      <h4 className="font-semibold text-foreground text-base">Dr. {doctor?.name || '-'}</h4>
+                      <p className="text-sm text-muted-foreground mt-1">{appointment.date} @ {appointment.time}</p>
                     </div>
                     <StatusBadge status={appointment.status} />
                   </div>
                   <div className="flex items-center gap-2 text-xs">
-                    <span className="px-2 py-1 rounded-md bg-muted font-medium text-foreground">
+                    <span className="px-2.5 py-1 rounded-md bg-muted font-medium text-foreground">
                       {doctor?.department || '-'}
                     </span>
-                    <span className={`px-2 py-1 rounded-md font-bold uppercase tracking-wider ${
-                      appointment.type === 'Emergency' ? 'bg-red-500/20 text-red-500' : 'bg-primary/20 text-primary'
-                    }`}>
+                    <span className="px-2.5 py-1 rounded-md bg-muted font-medium text-foreground">
                       {appointment.type}
                     </span>
                   </div>
                   {(appointment.remarks || appointment.prescription) && (
-                    <div className="pt-2 border-t border-border space-y-1 text-sm">
+                    <div className="pt-3 border-t border-border/50 space-y-2 text-sm">
                       {appointment.remarks && (
-                        <p className="text-foreground/80"><span className="font-semibold text-muted-foreground">Notes:</span> {appointment.remarks}</p>
+                        <p className="text-foreground/80"><span className="font-medium text-muted-foreground mr-2">Notes:</span> {appointment.remarks}</p>
                       )}
                       {appointment.prescription && (
-                        <p className="text-primary"><span className="font-semibold text-muted-foreground">Rx:</span> {appointment.prescription}</p>
+                        <p className="text-foreground"><span className="font-medium text-muted-foreground mr-2">Rx:</span> {appointment.prescription}</p>
                       )}
                     </div>
                   )}
@@ -252,59 +281,57 @@ export default function PatientDashboard() {
               );
             })
           ) : (
-            <div className="py-8 text-center text-muted-foreground bg-card/30 rounded-xl border border-border/50 border-dashed">
+            <div className="py-8 text-center text-muted-foreground bg-muted/50 rounded-xl border border-border/50">
               No past appointments found.
             </div>
           )}
         </div>
 
         {/* Desktop View */}
-        <div className="hidden md:block overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto bg-card">
           <table className="w-full text-sm text-left">
-            <thead className="text-[10px] uppercase tracking-widest text-muted-foreground bg-background/50">
+            <thead className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/50 border-b border-border/50">
               <tr>
-                <th className="px-6 py-4 font-bold">DATE & TIME</th>
-                <th className="px-6 py-4 font-bold">DOCTOR</th>
-                <th className="px-6 py-4 font-bold">DEPARTMENT</th>
-                <th className="px-6 py-4 font-bold">TYPE</th>
-                <th className="px-6 py-4 font-bold">DETAILS</th>
-                <th className="px-6 py-4 font-bold">STATUS</th>
-                <th className="px-6 py-4 font-bold"></th>
+                <th className="px-6 py-4">Date & Time</th>
+                <th className="px-6 py-4">Doctor</th>
+                <th className="px-6 py-4">Department</th>
+                <th className="px-6 py-4">Type</th>
+                <th className="px-6 py-4">Details</th>
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-border/50">
               {filteredAppointments.length > 0 ? (
                 filteredAppointments.map((appointment) => {
                   const doctor = getDoctor(appointment.doctorId);
                   return (
-                    <tr key={appointment.id} className="hover:bg-muted transition-colors group">
-                      <td className="px-6 py-4 font-mono text-foreground text-xs">
+                    <tr key={appointment.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-6 py-4 text-foreground font-medium">
                         {appointment.date}<br/>
-                        <span className="text-muted-foreground">{appointment.time}</span>
+                        <span className="text-muted-foreground font-normal">{appointment.time}</span>
                       </td>
                       <td className="px-6 py-4 font-medium text-foreground">Dr. {doctor?.name || '-'}</td>
                       <td className="px-6 py-4 text-muted-foreground">{doctor?.department || '-'}</td>
                       <td className="px-6 py-4">
-                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                          appointment.type === 'Emergency' ? 'bg-red-500/20 text-red-500' : 'bg-primary/20 text-primary'
-                        }`}>
+                        <span className="text-xs font-medium px-2.5 py-1 rounded-md bg-muted text-foreground">
                           {appointment.type}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-xs">
-                        {appointment.remarks && <p className="text-foreground/80 truncate max-w-[150px]"><span className="text-muted-foreground">Notes:</span> {appointment.remarks}</p>}
-                        {appointment.prescription && <p className="text-primary truncate max-w-[150px]"><span className="text-muted-foreground">Rx:</span> {appointment.prescription}</p>}
+                        {appointment.remarks && <p className="text-foreground/80 truncate max-w-[150px]"><span className="text-muted-foreground mr-1">Notes:</span>{appointment.remarks}</p>}
+                        {appointment.prescription && <p className="text-foreground truncate max-w-[150px]"><span className="text-muted-foreground mr-1">Rx:</span>{appointment.prescription}</p>}
                         {!appointment.remarks && !appointment.prescription && <span className="text-muted-foreground">-</span>}
                       </td>
                       <td className="px-6 py-4">
                         <StatusBadge status={appointment.status} />
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 text-right">
                         {appointment.status === 'Scheduled' && (
                           <button
                             type="button"
                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowQrApptId(appointment.id); }}
-                            className="p-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition-colors"
+                            className="p-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-foreground rounded-lg transition-colors border border-border/50"
                             title="View QR Pass"
                           >
                             <QrCode className="w-4 h-4" />
@@ -316,7 +343,7 @@ export default function PatientDashboard() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
+                  <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground bg-muted/10">
                     No past appointments found.
                   </td>
                 </tr>
@@ -324,7 +351,7 @@ export default function PatientDashboard() {
             </tbody>
           </table>
         </div>
-      </div>
+      </motion.div>
 
       <BookAppointmentModal 
         open={isBookModalOpen} 
@@ -335,18 +362,25 @@ export default function PatientDashboard() {
 
       {showQrApptId && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div 
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             className="absolute inset-0 bg-background/80 backdrop-blur-sm" 
             onClick={() => setShowQrApptId(null)} 
           />
-          <div className="relative w-full max-w-sm bg-card border border-border shadow-2xl rounded-2xl p-6 z-[10000] animate-in zoom-in-95 duration-200">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="relative w-full max-w-sm bg-card border border-border shadow-2xl rounded-2xl p-6 z-[10000]"
+          >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-                <QrCode className="w-5 h-5 text-primary" /> Appointment QR Pass
+              <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                <QrCode className="w-5 h-5 text-foreground" /> Appointment QR Pass
               </h2>
               <button 
                 onClick={() => setShowQrApptId(null)} 
-                className="text-muted-foreground hover:text-foreground rounded-full p-1 hover:bg-muted transition-colors"
+                className="text-muted-foreground hover:text-foreground rounded-full p-1.5 hover:bg-muted transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -365,30 +399,29 @@ export default function PatientDashboard() {
                 />
               </div>
               
-              <div className="w-full bg-muted/50 rounded-xl p-4 space-y-2 text-sm text-center">
-                <p className="text-muted-foreground">Appointment ID</p>
-                <p className="font-mono font-medium text-foreground text-lg tracking-widest">{showQrApptId}</p>
+              <div className="w-full bg-muted/50 rounded-xl p-4 space-y-2 text-sm text-center border border-border/50">
+                <p className="text-muted-foreground font-medium">Appointment ID</p>
+                <p className="font-mono font-semibold text-foreground text-lg tracking-widest">{showQrApptId}</p>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
 function StatusBadge({ status }: { status: AppointmentStatus }) {
-  let styles = "bg-muted/80 text-muted-foreground border-border";
+  let styles = "bg-muted text-muted-foreground border-border";
   
-  if (status === "In Progress") styles = "bg-primary/10 text-primary border-primary/20";
-  else if (status === "Waiting") styles = "bg-blue-500/10 text-blue-500 border-blue-500/20";
-  else if (status === "Scheduled") styles = "bg-amber-500/10 text-amber-500 border-amber-500/20";
-
-  else if (status === "Completed") styles = "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
-  else if (status === "No Show" || status === "Cancelled") styles = "bg-red-500/10 text-red-500 border-red-500/20";
+  if (status === "In Progress") styles = "bg-zinc-800 text-zinc-100 border-zinc-700 dark:bg-zinc-100 dark:text-zinc-900";
+  else if (status === "Waiting") styles = "bg-zinc-100 text-zinc-900 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-100";
+  else if (status === "Scheduled") styles = "bg-foreground text-background border-transparent";
+  else if (status === "Completed") styles = "bg-green-500/10 text-green-600 border-green-500/20 dark:text-green-400";
+  else if (status === "No Show" || status === "Cancelled") styles = "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400";
 
   return (
-    <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md border ${styles}`}>
+    <span className={`px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider rounded-md border ${styles}`}>
       {status}
     </span>
   );
